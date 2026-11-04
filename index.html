@@ -180,26 +180,36 @@
       if (show) el.classList.remove('hidden'); else el.classList.add('hidden');
     }
 
-    async function callGAS(action, payload = {}) {
-      toggleLoading(true);
-      try {
-        const response = await fetch(WEBAPP_URL, {
-          method: 'POST',
-          body: JSON.stringify({ action, payload })
-        });
-        const resJson = await response.json();
-        toggleLoading(false);
-        if (resJson.status === 'success') {
-          return resJson.data;
-        } else {
-          throw new Error(resJson.message);
-        }
-      } catch (err) {
-        toggleLoading(false);
-        alert('Error: ' + err.message);
-        return null;
-      }
+async function callGAS(action, payload = {}) {
+  toggleLoading(true);
+  try {
+    // Menggunakan FormData / URLSearchParams untuk menghindari blokir CORS Preflight
+    const formData = new URLSearchParams();
+    formData.append('data', JSON.stringify({ action, payload }));
+
+    const response = await fetch(WEBAPP_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: formData.toString()
+    });
+
+    const resJson = await response.json();
+    toggleLoading(false);
+    if (resJson.status === 'success') {
+      return resJson.data;
+    } else {
+      throw new Error(resJson.message || 'Gagal memproses respons');
     }
+  } catch (err) {
+    toggleLoading(false);
+    console.error('GAS Error:', err);
+    // Jika fetch gagal karena CORS, tampilkan pesan ramah
+    alert('Gagal mengambil data dari Google Sheets. Pastikan Web App GAS sudah di-deploy sebagai "Anyone".');
+    return null;
+  }
+}
 
     async function loadAppData() {
       const stats = await callGAS('getDashboardStats');
