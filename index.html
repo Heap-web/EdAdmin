@@ -120,7 +120,7 @@
               <div id="scan-feedback" class="mt-4 p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm hidden font-medium"></div>
             </div>
 
-            <!-- TABEL DAFTAR SISWA HADIR HARI INI -->
+            <!-- TABEL DAFTAR SISWA HADIR HARI INI DENGAN WAKTU -->
             <div class="bg-white p-6 rounded-2xl shadow-sm border flex flex-col">
               <div class="flex justify-between items-center mb-4">
                 <h3 class="font-bold text-blue-950 text-lg"><i class="fa-solid fa-user-check mr-2 text-emerald-600"></i>Siswa Hadir Hari Ini</h3>
@@ -132,11 +132,12 @@
                     <tr class="bg-slate-100 text-slate-700 border-b">
                       <th class="p-3">Nama Siswa</th>
                       <th class="p-3">Kelas</th>
+                      <th class="p-3">Waktu</th>
                       <th class="p-3 text-center">Status</th>
                     </tr>
                   </thead>
                   <tbody id="today-attendance-body" class="divide-y divide-slate-100">
-                    <tr><td colspan="3" class="text-center py-4 text-slate-400">Belum ada yang absen hari ini</td></tr>
+                    <tr><td colspan="4" class="text-center py-4 text-slate-400">Belum ada yang absen hari ini</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -186,7 +187,7 @@
   </div>
 
   <script>
-    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyVaNPiICFA_qmcn5BqwqPA-YtI_0Q28C7TJGVFQ64Dx3o1SI_t2Tu4SDcRc0hKgQOEsw/exec";
+    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzvRK2YZ0qrgck6qWHggP0I-z6iyiXa7pyaUbzXWhvj4pQvlBQxYmY7_ezz5EsezMULCw/exec";
 
     let appData = { students: [], schedules: [], settings: {} };
     let html5QrCode = null;
@@ -347,11 +348,12 @@
           <tr class="hover:bg-slate-50">
             <td class="p-3 font-semibold text-blue-950">${item.nama}</td>
             <td class="p-3 text-slate-600">${item.kelas}</td>
+            <td class="p-3 text-slate-600 font-mono">${item.waktu || '-'}</td>
             <td class="p-3 text-center"><span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-bold">${item.status}</span></td>
           </tr>
         `).join('');
       } else {
-        tbody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-slate-400">Belum ada yang absen hari ini</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-slate-400">Belum ada yang absen hari ini</td></tr>`;
       }
     }
 
@@ -373,7 +375,6 @@
             
             const res = await callGAS('scanQRCodeAttendance', { 
               nisn: text, 
-              tanggal: new Date().toISOString().split('T')[0], 
               status: 'Hadir' 
             });
 
