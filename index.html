@@ -187,7 +187,7 @@
   </div>
 
   <script>
-    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzvRK2YZ0qrgck6qWHggP0I-z6iyiXa7pyaUbzXWhvj4pQvlBQxYmY7_ezz5EsezMULCw/exec";
+    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzkTocjttD-rbbEYzUuiTkdsuT1MpzzDNW3qjsn4z99Tx6GGTFVY6WDt6ox1i4-wP3-sA/exec";
 
     let appData = { students: [], schedules: [], settings: {} };
     let html5QrCode = null;
@@ -357,6 +357,9 @@
       }
     }
 
+    let lastScannedNisn = null;
+    let lastScanTime = 0;
+
     async function initQrScanner() {
       if (html5QrCode) { try { await html5QrCode.stop(); } catch(e) {} html5QrCode = null; }
       
@@ -369,18 +372,45 @@
           { facingMode: "environment" }, 
           { fps: 10, qrbox: { width: 250, height: 250 } }, 
           async (text) => {
+            const currentTime = new Date().getTime();
+            
+            // COOLDOWN 3 Detik untuk mencegah scan ganda beruntun
+            if (text === lastScannedNisn && (currentTime - lastScanTime < 2000)) {
+              return; 
+            }
+
+            lastScannedNisn = text;
+            lastScanTime = currentTime;
+
             feedback.classList.remove('hidden', 'bg-red-50', 'text-red-800');
             feedback.classList.add('bg-emerald-50', 'text-emerald-800');
             feedback.innerText = `Memproses NISN: ${text}...`;
             
-            const res = await callGAS('scanQRCodeAttendance', { 
-              nisn: text, 
-              status: 'Hadir' 
-            });
+            try {
+              const formData = new URLSearchParams();
+              formData.append('data', JSON.stringify({ 
+                action: 'scanQRCodeAttendance', 
+                payload: { nisn: text, status: 'Hadir' } 
+              }));
 
-            if (res) {
-              feedback.innerText = `Berhasil! ${res.studentName} (${res.kelas}) tercatat HADIR.`;
-              loadTodayAttendance();
+              const response = await fetch(WEBAPP_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString()
+              });
+              
+              const resJson = await response.json();
+              if (resJson.status === 'success' && resJson.data) {
+                const res = resJson.data;
+                feedback.innerText = `Berhasil! ${res.studentName} (${res.kelas}) tercatat HADIR.`;
+                loadTodayAttendance(); 
+              } else {
+                throw new Error(resJson.message);
+              }
+            } catch (err) {
+              feedback.classList.remove('bg-emerald-50', 'text-emerald-800');
+              feedback.classList.add('bg-red-50', 'text-red-800');
+              feedback.innerText = `Gagal menyimpan: ${err.message}`;
             }
           },
           (err) => {}
