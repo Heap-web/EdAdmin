@@ -202,7 +202,7 @@
   </div>
 
   <script>
-    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwMJp23PUUAZIoR8tHED4esNaP_fTImv6mn2uwEGzAkycR-0pAsMBqHUxelQEbohtbJiw/exec";
+    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwfvHKQWyyCz1fO9_EUXKBIIFMWWTY70Boi6ICUejaJdige6fQBBo_g7TXX5iKVX8xNEw/exec";
 
     let appData = { students: [], schedules: [], settings: {} };
     let html5QrCode = null;
@@ -465,7 +465,6 @@
 
                 feedback.innerText = `Berhasil! ${res.studentName} (${res.kelas}) tercatat HADIR.`;
                 
-                // Tampilkan Kartu Profil Foto Siswa secara Live
                 const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(res.studentName)}&background=0D8ABC&color=fff`;
                 scanFoto.src = res.fotoUrl && res.fotoUrl.trim() !== '' ? res.fotoUrl : defaultAvatar;
                 scanNama.innerText = res.studentName;
