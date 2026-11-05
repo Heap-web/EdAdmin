@@ -112,7 +112,7 @@
           </div>
         </div>
 
-        <!-- TAB 4: ABSENSI & QR SCANNER (LAYOUT BARU: FOTO BESAR DI KANAN, TABEL DI BAWAH) -->
+        <!-- TAB 4: ABSENSI & QR SCANNER -->
         <div id="tab-absensi" class="tab-content hidden space-y-6">
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Kolom Kiri: Live QR Scanner -->
@@ -134,7 +134,7 @@
               <div id="latest-scan-card" class="hidden flex flex-col items-center space-y-3 w-full">
                 <img id="scan-foto" src="" alt="Foto Siswa" class="w-40 h-40 rounded-2xl object-cover border-4 border-emerald-500 shadow-md bg-slate-100" />
                 <div>
-                  <span class="bg-emerald-100 text-emerald-800 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider">Hadir Tepat Waktu</span>
+                  <span id="scan-status-badge" class="bg-emerald-100 text-emerald-800 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider">Hadir Tepat Waktu</span>
                   <h4 id="scan-nama" class="font-bold text-blue-950 text-xl mt-2">-</h4>
                   <p id="scan-info" class="text-sm text-slate-600 mt-0.5">-</p>
                   <p id="scan-time" class="text-xs font-mono text-slate-400 mt-1">-</p>
@@ -211,7 +211,7 @@
   </div>
 
   <script>
-    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbycdjdWy8Ots_6WdVxc4XFs10L2XNPL_Sucn8W-E0qDoBgIKGD3UD663ZYtPnqPBLb4Ow/exec";
+    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzsqzKF_BeXG0O8WqB6R7DZBdtz7Ft5QMAl7Au_Iz82_ZeELF_ZF328Hh9G2pLuDKi4uw/exec";
 
     let appData = { students: [], schedules: [], settings: {} };
     let html5QrCode = null;
@@ -221,7 +221,6 @@
       loadAppData();
     });
 
-    // Inisialisasi Audio Context agar suara beep tidak diblokir browser
     function initAudio() {
       if (!audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -312,9 +311,7 @@
     }
 
     function switchTab(tabId) {
-      // Membuka kunci audio setiap kali berpindah tab (terutama saat masuk tab absensi)
       initAudio();
-
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
       document.getElementById('tab-' + tabId).classList.remove('hidden');
       document.querySelectorAll('.nav-link').forEach(el => {
@@ -417,13 +414,14 @@
           tbody.innerHTML = resJson.data.map(item => {
             const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.nama)}&background=0D8ABC&color=fff`;
             const foto = item.fotoUrl && item.fotoUrl.trim() !== '' ? item.fotoUrl : defaultAvatar;
+            const badgeColor = item.status === 'Terlambat' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800';
             return `
               <tr class="hover:bg-slate-50">
                 <td class="p-3"><img src="${foto}" alt="" class="w-8 h-8 rounded-full object-cover border bg-slate-100" /></td>
                 <td class="p-3 font-semibold text-blue-950">${item.nama}</td>
                 <td class="p-3 text-slate-600">${item.kelas}</td>
                 <td class="p-3 text-slate-600 font-mono">${item.waktu || '-'}</td>
-                <td class="p-3 text-center"><span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-bold">${item.status}</span></td>
+                <td class="p-3 text-center"><span class="${badgeColor} text-xs px-2.5 py-1 rounded-full font-bold">${item.status}</span></td>
               </tr>
             `;
           }).join('');
@@ -450,6 +448,7 @@
       const scanNama = document.getElementById('scan-nama');
       const scanInfo = document.getElementById('scan-info');
       const scanTime = document.getElementById('scan-time');
+      const scanBadge = document.getElementById('scan-status-badge');
 
       try {
         html5QrCode = new Html5Qrcode("reader");
@@ -474,7 +473,7 @@
               const formData = new URLSearchParams();
               formData.append('data', JSON.stringify({ 
                 action: 'scanQRCodeAttendance', 
-                payload: { nisn: text, status: 'Hadir' } 
+                payload: { nisn: text } 
               }));
 
               const response = await fetch(WEBAPP_URL, {
@@ -486,17 +485,24 @@
               const resJson = await response.json();
               if (resJson.status === 'success' && resJson.data) {
                 const res = resJson.data;
-                playBeepSound(); // Membunyikan suara "tit"
+                playBeepSound(); 
 
-                feedback.innerText = `Berhasil! ${res.studentName} tercatat HADIR.`;
+                feedback.innerText = `Berhasil! ${res.studentName} tercatat ${res.statusAbsen.toUpperCase()}.`;
                 
-                // Tampilkan Kartu Profil Foto Besar di Kanan
                 const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(res.studentName)}&background=0D8ABC&color=fff`;
                 scanFoto.src = res.fotoUrl && res.fotoUrl.trim() !== '' ? res.fotoUrl : defaultAvatar;
                 scanNama.innerText = res.studentName;
                 scanInfo.innerText = `Kelas: ${res.kelas} • NISN: ${text}`;
                 const nowTime = new Date().toLocaleTimeString('id-ID');
                 scanTime.innerText = `Waktu Scan: ${nowTime}`;
+
+                if (res.statusAbsen === 'Terlambat') {
+                  scanBadge.className = "bg-amber-100 text-amber-800 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider";
+                  scanBadge.innerText = "TERLAMBAT";
+                } else {
+                  scanBadge.className = "bg-emerald-100 text-emerald-800 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider";
+                  scanBadge.innerText = "HADIR TEPAT WAKTU";
+                }
 
                 placeholder.classList.add('hidden');
                 scanCard.classList.remove('hidden');
