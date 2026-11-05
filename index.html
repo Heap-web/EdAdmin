@@ -187,7 +187,7 @@
   </div>
 
   <script>
-    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzhZLOMjZaLTvem8LwkMGyd9gz6IUng-IryWywHJYfij-KBKzgCeWfchk5IPHTsYUiYGw/exec";
+    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyn_dxSkLOUw9YIoDUddk2izCl21r27lBk8IqTTdgbPIotRv3dhhaD_TkPN51QoodWP8Q/exec";
 
     let appData = { students: [], schedules: [], settings: {} };
     let html5QrCode = null;
@@ -340,20 +340,32 @@
     }
 
     async function loadTodayAttendance() {
-      const res = await callGAS('getTodayAttendance');
-      const tbody = document.getElementById('today-attendance-body');
-      
-      if (res && res.length > 0) {
-        tbody.innerHTML = res.map(item => `
-          <tr class="hover:bg-slate-50">
-            <td class="p-3 font-semibold text-blue-950">${item.nama}</td>
-            <td class="p-3 text-slate-600">${item.kelas}</td>
-            <td class="p-3 text-slate-600 font-mono">${item.waktu || '-'}</td>
-            <td class="p-3 text-center"><span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-bold">${item.status}</span></td>
-          </tr>
-        `).join('');
-      } else {
-        tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-slate-400">Belum ada yang absen hari ini</td></tr>`;
+      // Mengambil data tanpa mengaktifkan overlay loading penuh
+      try {
+        const formData = new URLSearchParams();
+        formData.append('data', JSON.stringify({ action: 'getTodayAttendance', payload: {} }));
+        const response = await fetch(WEBAPP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: formData.toString()
+        });
+        const resJson = await response.json();
+        const tbody = document.getElementById('today-attendance-body');
+        
+        if (resJson.status === 'success' && resJson.data && resJson.data.length > 0) {
+          tbody.innerHTML = resJson.data.map(item => `
+            <tr class="hover:bg-slate-50">
+              <td class="p-3 font-semibold text-blue-950">${item.nama}</td>
+              <td class="p-3 text-slate-600">${item.kelas}</td>
+              <td class="p-3 text-slate-600 font-mono">${item.waktu || '-'}</td>
+              <td class="p-3 text-center"><span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-bold">${item.status}</span></td>
+            </tr>
+          `).join('');
+        } else {
+          tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-slate-400">Belum ada yang absen hari ini</td></tr>`;
+        }
+      } catch (e) {
+        console.error("Gagal memuat kehadiran:", e);
       }
     }
 
@@ -374,7 +386,7 @@
           async (text) => {
             const currentTime = new Date().getTime();
             
-            // COOLDOWN 3 Detik untuk mencegah scan ganda beruntun
+            // Jeda 2 detik (2000ms) untuk mencegah duplikasi scan instan
             if (text === lastScannedNisn && (currentTime - lastScanTime < 2000)) {
               return; 
             }
