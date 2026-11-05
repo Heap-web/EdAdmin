@@ -187,7 +187,7 @@
   </div>
 
   <script>
-    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyn_dxSkLOUw9YIoDUddk2izCl21r27lBk8IqTTdgbPIotRv3dhhaD_TkPN51QoodWP8Q/exec";
+    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbx7LIgjNqjJhYP8j6q_99VCpl-fWy1Q9sbOLLemXjezpiczq8QcaDIGJgw7qrxyixBkeg/exec";
 
     let appData = { students: [], schedules: [], settings: {} };
     let html5QrCode = null;
@@ -340,7 +340,6 @@
     }
 
     async function loadTodayAttendance() {
-      // Mengambil data tanpa mengaktifkan overlay loading penuh
       try {
         const formData = new URLSearchParams();
         formData.append('data', JSON.stringify({ action: 'getTodayAttendance', payload: {} }));
@@ -369,6 +368,27 @@
       }
     }
 
+    // Fungsi pembuat bunyi "tit" (bip) pendek
+    function playBeepSound() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.15);
+      } catch (e) {
+        console.log("Audio tidak didukung", e);
+      }
+    }
+
     let lastScannedNisn = null;
     let lastScanTime = 0;
 
@@ -386,7 +406,7 @@
           async (text) => {
             const currentTime = new Date().getTime();
             
-            // Jeda 2 detik (2000ms) untuk mencegah duplikasi scan instan
+            // Jeda cooldown 2 detik
             if (text === lastScannedNisn && (currentTime - lastScanTime < 2000)) {
               return; 
             }
@@ -414,6 +434,7 @@
               const resJson = await response.json();
               if (resJson.status === 'success' && resJson.data) {
                 const res = resJson.data;
+                playBeepSound(); // Membunyikan suara "tit" saat berhasil
                 feedback.innerText = `Berhasil! ${res.studentName} (${res.kelas}) tercatat HADIR.`;
                 loadTodayAttendance(); 
               } else {
