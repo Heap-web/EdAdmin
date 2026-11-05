@@ -112,49 +112,58 @@
           </div>
         </div>
 
-        <!-- TAB 4: ABSENSI & QR SCANNER -->
+        <!-- TAB 4: ABSENSI & QR SCANNER (LAYOUT BARU: FOTO BESAR DI KANAN, TABEL DI BAWAH) -->
         <div id="tab-absensi" class="tab-content hidden space-y-6">
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="space-y-4">
-              <div class="bg-white p-6 rounded-2xl shadow-sm border">
-                <h3 class="font-bold text-blue-950 text-lg mb-2"><i class="fa-solid fa-qrcode mr-2"></i>Live QR Scanner Absensi</h3>
-                <div id="reader" style="width: 100%; height: 260px; position: relative;" class="rounded-xl overflow-hidden border bg-slate-900"></div>
-                <div id="scan-feedback" class="mt-3 p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm hidden font-medium"></div>
+            <!-- Kolom Kiri: Live QR Scanner -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border flex flex-col space-y-4">
+              <h3 class="font-bold text-blue-950 text-lg"><i class="fa-solid fa-qrcode mr-2"></i>Live QR Scanner Absensi</h3>
+              <div id="reader" style="width: 100%; height: 280px; position: relative;" class="rounded-xl overflow-hidden border bg-slate-900"></div>
+              <div id="scan-feedback" class="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm hidden font-medium"></div>
+            </div>
+
+            <!-- Kolom Kanan: Kartu Profil Foto Besar (Live Scan) -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border flex flex-col justify-center items-center text-center">
+              <h3 class="font-bold text-blue-950 text-base mb-4 self-start"><i class="fa-solid fa-id-card mr-2 text-blue-600"></i>Siswa Terakhir Absen</h3>
+              
+              <div id="latest-scan-placeholder" class="py-12 text-slate-400">
+                <i class="fa-solid fa-camera-retro text-4xl mb-2"></i>
+                <p class="text-sm">Arahkan kamera ke QR Code siswa...</p>
               </div>
 
-              <!-- KARTU LIVE FOTO SISWA YANG BARU SAJA ABSEN -->
-              <div id="latest-scan-card" class="bg-white p-4 rounded-2xl shadow-sm border flex items-center space-x-4 hidden border-l-4 border-l-emerald-500">
-                <img id="scan-foto" src="" alt="Foto Siswa" class="w-16 h-16 rounded-xl object-cover border bg-slate-100 shadow-sm" />
-                <div class="flex-1">
-                  <span class="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">Berhasil Hadir</span>
-                  <h4 id="scan-nama" class="font-bold text-blue-950 text-base mt-1">-</h4>
-                  <p id="scan-info" class="text-xs text-slate-500">-</p>
+              <div id="latest-scan-card" class="hidden flex flex-col items-center space-y-3 w-full">
+                <img id="scan-foto" src="" alt="Foto Siswa" class="w-40 h-40 rounded-2xl object-cover border-4 border-emerald-500 shadow-md bg-slate-100" />
+                <div>
+                  <span class="bg-emerald-100 text-emerald-800 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider">Hadir Tepat Waktu</span>
+                  <h4 id="scan-nama" class="font-bold text-blue-950 text-xl mt-2">-</h4>
+                  <p id="scan-info" class="text-sm text-slate-600 mt-0.5">-</p>
+                  <p id="scan-time" class="text-xs font-mono text-slate-400 mt-1">-</p>
                 </div>
               </div>
             </div>
+          </div>
 
-            <!-- TABEL DAFTAR SISWA HADIR HARI INI DENGAN FOTO -->
-            <div class="bg-white p-6 rounded-2xl shadow-sm border flex flex-col">
-              <div class="flex justify-between items-center mb-4">
-                <h3 class="font-bold text-blue-950 text-lg"><i class="fa-solid fa-user-check mr-2 text-emerald-600"></i>Siswa Hadir Hari Ini</h3>
-                <button onclick="loadTodayAttendance()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1.5 rounded-lg font-medium transition"><i class="fa-solid fa-rotate mr-1"></i>Muat Ulang</button>
-              </div>
-              <div class="flex-1 overflow-y-auto max-h-[350px] border rounded-xl">
-                <table class="w-full text-left text-sm border-collapse">
-                  <thead>
-                    <tr class="bg-slate-100 text-slate-700 border-b">
-                      <th class="p-3">Foto</th>
-                      <th class="p-3">Nama Siswa</th>
-                      <th class="p-3">Kelas</th>
-                      <th class="p-3">Waktu</th>
-                      <th class="p-3 text-center">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody id="today-attendance-body" class="divide-y divide-slate-100">
-                    <tr><td colspan="5" class="text-center py-4 text-slate-400">Belum ada yang absen hari ini</td></tr>
-                  </tbody>
-                </table>
-              </div>
+          <!-- Bagian Bawah: Tabel Siswa Hadir Hari Ini -->
+          <div class="bg-white p-6 rounded-2xl shadow-sm border">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="font-bold text-blue-950 text-lg"><i class="fa-solid fa-user-check mr-2 text-emerald-600"></i>Siswa Hadir Hari Ini</h3>
+              <button onclick="loadTodayAttendance()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg font-medium transition"><i class="fa-solid fa-rotate mr-1"></i>Muat Ulang</button>
+            </div>
+            <div class="overflow-y-auto max-h-[300px] border rounded-xl">
+              <table class="w-full text-left text-sm border-collapse">
+                <thead>
+                  <tr class="bg-slate-100 text-slate-700 border-b">
+                    <th class="p-3">Foto</th>
+                    <th class="p-3">Nama Siswa</th>
+                    <th class="p-3">Kelas</th>
+                    <th class="p-3">Waktu</th>
+                    <th class="p-3 text-center">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="today-attendance-body" class="divide-y divide-slate-100">
+                  <tr><td colspan="5" class="text-center py-4 text-slate-400">Belum ada yang absen hari ini</td></tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
@@ -192,7 +201,7 @@
         <div><label class="block text-xs font-semibold text-slate-600 mb-1">Nama Lengkap</label><input type="text" id="stu-nama" class="w-full p-2.5 border rounded-lg text-sm" required /></div>
         <div><label class="block text-xs font-semibold text-slate-600 mb-1">Kelas</label><input type="text" id="stu-kelas" class="w-full p-2.5 border rounded-lg text-sm" required /></div>
         <div><label class="block text-xs font-semibold text-slate-600 mb-1">Jenis Kelamin</label><select id="stu-jk" class="w-full p-2.5 border rounded-lg text-sm"><option value="L">Laki-laki</option><option value="P">Perempuan</option></select></div>
-        <div><label class="block text-xs font-semibold text-slate-600 mb-1">URL Foto (Opsional)</label><input type="text" id="stu-foto" placeholder="https://..." class="w-full p-2.5 border rounded-lg text-sm" /></div>
+        <div><label class="block text-xs font-semibold text-slate-600 mb-1">Link Foto Google Drive (Opsional)</label><input type="text" id="stu-foto" placeholder="https://drive.google.com/file/d/..." class="w-full p-2.5 border rounded-lg text-sm" /></div>
         <div class="flex space-x-3 pt-2">
           <button type="button" onclick="closeStudentModal()" class="flex-1 bg-slate-100 text-slate-700 py-2.5 rounded-lg text-sm font-medium">Batal</button>
           <button type="submit" class="flex-1 bg-blue-950 text-white py-2.5 rounded-lg text-sm font-medium">Simpan</button>
@@ -202,14 +211,45 @@
   </div>
 
   <script>
-    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwfvHKQWyyCz1fO9_EUXKBIIFMWWTY70Boi6ICUejaJdige6fQBBo_g7TXX5iKVX8xNEw/exec";
+    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwbiGdixa5MlCBoMZKzF1vx8ArgsYyMvDwcIX7lYdkauntsAgI9Ez1CFtF3-S-dM7TauQ/exec";
 
     let appData = { students: [], schedules: [], settings: {} };
     let html5QrCode = null;
+    let audioCtx = null;
 
     window.addEventListener('DOMContentLoaded', () => {
       loadAppData();
     });
+
+    // Inisialisasi Audio Context agar suara beep tidak diblokir browser
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function playBeepSound() {
+      try {
+        initAudio();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.15);
+      } catch (e) {
+        console.log("Audio error:", e);
+      }
+    }
 
     function toggleLoading(show, text = 'Memproses...') {
       const el = document.getElementById('app-loading');
@@ -272,6 +312,9 @@
     }
 
     function switchTab(tabId) {
+      // Membuka kunci audio setiap kali berpindah tab (terutama saat masuk tab absensi)
+      initAudio();
+
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
       document.getElementById('tab-' + tabId).classList.remove('hidden');
       document.querySelectorAll('.nav-link').forEach(el => {
@@ -392,26 +435,6 @@
       }
     }
 
-    function playBeepSound() {
-      try {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-
-        oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
-        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
-
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-
-        oscillator.start();
-        oscillator.stop(audioCtx.currentTime + 0.15);
-      } catch (e) {
-        console.log("Audio tidak didukung", e);
-      }
-    }
-
     let lastScannedNisn = null;
     let lastScanTime = 0;
 
@@ -421,10 +444,12 @@
       loadTodayAttendance();
 
       const feedback = document.getElementById('scan-feedback');
+      const placeholder = document.getElementById('latest-scan-placeholder');
       const scanCard = document.getElementById('latest-scan-card');
       const scanFoto = document.getElementById('scan-foto');
       const scanNama = document.getElementById('scan-nama');
       const scanInfo = document.getElementById('scan-info');
+      const scanTime = document.getElementById('scan-time');
 
       try {
         html5QrCode = new Html5Qrcode("reader");
@@ -461,14 +486,19 @@
               const resJson = await response.json();
               if (resJson.status === 'success' && resJson.data) {
                 const res = resJson.data;
-                playBeepSound(); 
+                playBeepSound(); // Membunyikan suara "tit"
 
-                feedback.innerText = `Berhasil! ${res.studentName} (${res.kelas}) tercatat HADIR.`;
+                feedback.innerText = `Berhasil! ${res.studentName} tercatat HADIR.`;
                 
+                // Tampilkan Kartu Profil Foto Besar di Kanan
                 const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(res.studentName)}&background=0D8ABC&color=fff`;
                 scanFoto.src = res.fotoUrl && res.fotoUrl.trim() !== '' ? res.fotoUrl : defaultAvatar;
                 scanNama.innerText = res.studentName;
                 scanInfo.innerText = `Kelas: ${res.kelas} • NISN: ${text}`;
+                const nowTime = new Date().toLocaleTimeString('id-ID');
+                scanTime.innerText = `Waktu Scan: ${nowTime}`;
+
+                placeholder.classList.add('hidden');
                 scanCard.classList.remove('hidden');
 
                 loadTodayAttendance(); 
