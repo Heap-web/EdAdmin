@@ -211,7 +211,7 @@
   </div>
 
   <script>
-    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwixYcwjsADvdO8_lPU6zZMUrwugf0pMPpnyqwOyqGRPoaEFsxzZ2AVP9KNimH5JvkrJQ/exec";
+    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxx3jRoTbfS3htiHbNoGyCalUaesfBZEnIC8bJxwSaWCvrspQPiF99ImxcgFwhVAirYXQ/exec";
 
     let appData = { students: [], schedules: [], settings: {} };
     let html5QrCode = null;
@@ -410,23 +410,28 @@
         const resJson = await response.json();
         const tbody = document.getElementById('today-attendance-body');
         
-        if (resJson.status === 'success' && resJson.data && resJson.data.length > 0) {
-          tbody.innerHTML = resJson.data.map(item => {
-            const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.nama)}&background=0D8ABC&color=fff`;
-            const foto = item.fotoUrl && item.fotoUrl.trim() !== '' ? item.fotoUrl : defaultAvatar;
-            const badgeColor = item.status === 'Terlambat' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800';
-            return `
-              <tr class="hover:bg-slate-50">
-                <td class="p-3"><img src="${foto}" alt="" class="w-8 h-8 rounded-full object-cover border bg-slate-100" /></td>
-                <td class="p-3 font-semibold text-blue-950">${item.nama}</td>
-                <td class="p-3 text-slate-600">${item.kelas}</td>
-                <td class="p-3 text-slate-600 font-mono">${item.waktu || '-'}</td>
-                <td class="p-3 text-center"><span class="${badgeColor} text-xs px-2.5 py-1 rounded-full font-bold">${item.status}</span></td>
-              </tr>
-            `;
-          }).join('');
+        if (resJson.status === 'success') {
+          if (resJson.data && resJson.data.length > 0) {
+            tbody.innerHTML = resJson.data.map(item => {
+              const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.nama)}&background=0D8ABC&color=fff`;
+              const foto = item.fotoUrl && item.fotoUrl.trim() !== '' ? item.fotoUrl : defaultAvatar;
+              const badgeColor = item.status === 'Terlambat' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800';
+              return `
+                <tr class="hover:bg-slate-50">
+                  <td class="p-3"><img src="${foto}" alt="" class="w-8 h-8 rounded-full object-cover border bg-slate-100" /></td>
+                  <td class="p-3 font-semibold text-blue-950">${item.nama}</td>
+                  <td class="p-3 text-slate-600">${item.kelas}</td>
+                  <td class="p-3 text-slate-600 font-mono">${item.waktu || '-'}</td>
+                  <td class="p-3 text-center"><span class="${badgeColor} text-xs px-2.5 py-1 rounded-full font-bold">${item.status}</span></td>
+                </tr>
+              `;
+            }).join('');
+          } else {
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-slate-400">Belum ada yang absen hari ini</td></tr>`;
+          }
         } else {
-          tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-slate-400">Belum ada yang absen hari ini</td></tr>`;
+          console.error("Error dari server:", resJson.message);
+          tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-red-500 font-medium">Gagal memuat: ${resJson.message}</td></tr>`;
         }
       } catch (e) {
         console.error("Gagal memuat kehadiran:", e);
