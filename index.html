@@ -756,4 +756,84 @@
             lastScannedNisn = text;
             lastScanTime = currentTime;
 
-            feedback.classList.remove('hidden', 'bg-red-50',
+            feedback.classList.remove('hidden', 'bg-red-50', 'text-red-800');
+            feedback.classList.add('bg-emerald-50', 'text-emerald-800');
+            feedback.innerText = `Memproses NISN: ${text}...`;
+            
+            try {
+              const formData = new URLSearchParams();
+              formData.append('data', JSON.stringify({ action: 'scanQRCodeAttendance', payload: { nisn: text } }));
+              const response = await fetch(WEBAPP_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString()
+              });
+              const resJson = await response.json();
+              
+              if (resJson.status === 'success' && resJson.data) {
+                const res = resJson.data;
+                playBeepSound(); 
+                feedback.innerText = `Berhasil! ${res.studentName} tercatat ${res.statusAbsen.toUpperCase()}.`;
+                
+                const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(res.studentName)}&background=0D8ABC&color=fff`;
+                scanFoto.src = res.fotoUrl && res.fotoUrl.trim() !== '' ? res.fotoUrl : defaultAvatar;
+                scanNama.innerText = res.studentName;
+                scanInfo.innerText = `Kelas: ${res.kelas} • NISN: ${text}`;
+                scanTime.innerText = `Waktu Scan: ${new Date().toLocaleTimeString('id-ID')}`;
+
+                if (res.statusAbsen === 'Terlambat') {
+                  scanBadge.className = "bg-amber-100 text-amber-800 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider";
+                  scanBadge.innerText = "TERLAMBAT";
+                } else if (res.statusAbsen === 'Pulang') {
+                  scanBadge.className = "bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider";
+                  scanBadge.innerText = "PULANG";
+                } else {
+                  scanBadge.className = "bg-emerald-100 text-emerald-800 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider";
+                  scanBadge.innerText = "HADIR TEPAT WAKTU";
+                }
+
+                placeholder.classList.add('hidden');
+                scanCard.classList.remove('hidden');
+
+                loadTodayAttendance(); 
+                loadUncheckedStudents();
+                loadAppData();
+              } else {
+                throw new Error(resJson.message);
+              }
+            } catch (err) {
+              feedback.classList.remove('bg-emerald-50', 'text-emerald-800');
+              feedback.classList.add('bg-red-50', 'text-red-800');
+              feedback.innerText = `Gagal menyimpan: ${err.message}`;
+            }
+          },
+          (err) => {}
+        );
+      } catch (err) {
+        feedback.classList.remove('hidden', 'bg-emerald-50', 'text-emerald-800');
+        feedback.classList.add('bg-red-50', 'text-red-800', 'border');
+        feedback.innerText = `Gagal membuka kamera: ${err}`;
+        html5QrCode = null;
+      }
+    }
+
+    function stopQrScanner() {
+      if (html5QrCode) { html5QrCode.stop().then(() => { html5QrCode = null; }).catch(e => {}); }
+    }
+
+    async function handleSaveSettings(e) {
+      e.preventDefault();
+      await callGAS('saveSettings', {
+        namaSekolah: document.getElementById('set-sekolah').value,
+        alamatSekolah: document.getElementById('set-alamat').value,
+        namaGuru: document.getElementById('set-guru').value,
+        nipGuru: document.getElementById('set-nipguru').value,
+        namaKepsek: document.getElementById('set-kepsek').value,
+        nipKepsek: document.getElementById('set-nipkepsek').value
+      });
+      alert('Pengaturan disimpan!');
+      loadAppData();
+    }
+  </script>
+</body>
+</html>
