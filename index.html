@@ -24,13 +24,13 @@
     <!-- Sidebar -->
     <aside class="w-64 bg-blue-950 text-white flex flex-col hidden md:flex shadow-xl z-20">
       <div class="p-5 border-b border-blue-900 flex items-center space-x-3">
-        <div id="sidebar-logo-container" class="bg-blue-600 p-2 rounded-lg text-white font-bold flex items-center justify-center w-10 h-10 overflow-hidden">
+        <div id="sidebar-logo-container" class="bg-blue-600 p-2 rounded-lg text-white font-bold flex items-center justify-center w-10 h-10 overflow-hidden shrink-0">
           <i class="fa-solid fa-graduation-cap" id="sidebar-default-icon"></i>
           <img id="sidebar-custom-logo" src="" class="w-full h-full object-cover hidden" alt="Logo" />
         </div>
         <div>
-          <h1 id="sidebar-app-name" class="font-bold text-lg leading-tight">EdAdmin Pro</h1>
-          <span class="text-xs text-blue-300">Kurikulum Merdeka SMK</span>
+          <h1 id="sidebar-app-name" class="font-bold text-base leading-tight">EdAdmin Pro</h1>
+          <span id="sidebar-app-sub" class="text-xs text-blue-300 block">Kurikulum Merdeka SMK</span>
         </div>
       </div>
       
@@ -42,7 +42,7 @@
         <a href="#" onclick="switchTab('pengaturan')" class="nav-link flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-blue-900/50 hover:text-white transition" data-tab="pengaturan"><i class="fa-solid fa-gear w-5"></i><span>Pengaturan</span></a>
       </nav>
 
-      <div class="p-4 border-t border-blue-900 text-xs text-blue-400">
+      <div class="p-4 border-t border-blue-900 text-xs text-blue-400 whitespace-pre-line" id="sidebar-footer-text">
         <p>EdAdmin Pro v2.0</p>
         <p class="font-semibold text-white">Google Sheets Database</p>
       </div>
@@ -259,14 +259,18 @@
         <!-- TAB 5: PENGATURAN -->
         <div id="tab-pengaturan" class="tab-content hidden space-y-6">
           <div class="bg-white p-6 rounded-2xl shadow-sm border max-w-2xl">
-            <h3 class="font-bold text-blue-950 text-lg mb-4">Pengaturan Kop Surat & Identitas Aplikasi</h3>
+            <h3 class="font-bold text-blue-950 text-lg mb-4"><i class="fa-solid fa-lock text-blue-600 mr-2"></i>Pengaturan Kop Surat & Identitas Aplikasi</h3>
             <form onsubmit="handleSaveSettings(event)" class="space-y-4">
               <div><label class="block text-xs font-semibold text-slate-600 mb-1">Nama Sekolah</label><input type="text" id="set-sekolah" class="w-full p-2.5 border rounded-lg text-sm" required /></div>
               <div><label class="block text-xs font-semibold text-slate-600 mb-1">Alamat Sekolah</label><input type="text" id="set-alamat" class="w-full p-2.5 border rounded-lg text-sm" required /></div>
               <div><label class="block text-xs font-semibold text-slate-600 mb-1">Link Logo Sekolah (Google Drive / Gambar) untuk Cetak Laporan</label><input type="text" id="set-logosekolah" placeholder="https://drive.google.com/file/d/..." class="w-full p-2.5 border rounded-lg text-sm" /></div>
               <hr class="my-2">
-              <div><label class="block text-xs font-semibold text-slate-600 mb-1">Nama Aplikasi (Sidebar)</label><input type="text" id="set-namaapp" class="w-full p-2.5 border rounded-lg text-sm" required /></div>
-              <div><label class="block text-xs font-semibold text-slate-600 mb-1">Link Logo Aplikasi (Sidebar)</label><input type="text" id="set-logoapp" placeholder="https://drive.google.com/file/d/..." class="w-full p-2.5 border rounded-lg text-sm" /></div>
+              <div><label class="block text-xs font-semibold text-slate-600 mb-1">Nama Aplikasi (Sidebar Atas)</label><input type="text" id="set-namaapp" class="w-full p-2.5 border rounded-lg text-sm" required /></div>
+              <div><label class="block text-xs font-semibold text-slate-600 mb-1">Sub-teks Keterangan Aplikasi (di bawah nama aplikasi)</label><input type="text" id="set-subteksapp" placeholder="Kurikulum Merdeka SMK" class="w-full p-2.5 border rounded-lg text-sm" required /></div>
+              <div><label class="block text-xs font-semibold text-slate-600 mb-1">Link Logo Aplikasi (Sidebar Atas)</label><input type="text" id="set-logoapp" placeholder="https://drive.google.com/file/d/..." class="w-full p-2.5 border rounded-lg text-sm" /></div>
+              <div><label class="block text-xs font-semibold text-slate-600 mb-1">Teks Footer Sidebar (Paling Bawah)</label><textarea id="set-footersidebar" rows="2" placeholder="EdAdmin Pro v2.0&#10;Google Sheets Database" class="w-full p-2.5 border rounded-lg text-sm"></textarea></div>
+              <hr class="my-2">
+              <div><label class="block text-xs font-semibold text-slate-600 mb-1">Password Masuk Pengaturan</label><input type="password" id="set-password" placeholder="admin123" class="w-full p-2.5 border rounded-lg text-sm" required /></div>
               <hr class="my-2">
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div><label class="block text-xs font-semibold text-slate-600 mb-1">Nama Guru</label><input type="text" id="set-guru" class="w-full p-2.5 border rounded-lg text-sm" required /></div>
@@ -276,7 +280,7 @@
                 <div><label class="block text-xs font-semibold text-slate-600 mb-1">Nama Kepala Sekolah</label><input type="text" id="set-kepsek" class="w-full p-2.5 border rounded-lg text-sm" required /></div>
                 <div><label class="block text-xs font-semibold text-slate-600 mb-1">NUPTK Kepala Sekolah</label><input type="text" id="set-nipkepsek" class="w-full p-2.5 border rounded-lg text-sm" required /></div>
               </div>
-              <button type="submit" class="bg-blue-950 text-white font-medium px-4 py-2 rounded-lg text-sm">Simpan Pengaturan</button>
+              <button type="submit" class="bg-blue-950 text-white font-medium px-4 py-2 rounded-lg text-sm"><i class="fa-solid fa-floppy-disk mr-2"></i>Simpan Pengaturan</button>
             </form>
           </div>
         </div>
@@ -304,11 +308,12 @@
   </div>
 
   <script>
-    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbypSt4U5I0e2V39bCqyGmY9Zmv8Yc-VeQzSCg8N4PdJ5HRC7d1NC4FgWyXUJxoOwlmNDw/exec";
+    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwrS5ERbf5nrlvBBppvXMFd8ir3wdAFZNyYY75eXMFnn6UOdROkfuKsnPIo7GG2HPBLuQ/exec";
 
     let appData = { students: [], settings: {} };
     let recapDataCache = [];
     let html5QrCode = null;
+    let isSettingsUnlocked = false;
 
     window.addEventListener('DOMContentLoaded', () => {
       populateMonthDropdown();
@@ -424,9 +429,14 @@
       if (settings) {
         appData.settings = settings;
         
-        // Update Sidebar Nama & Logo Aplikasi
+        // Update Sidebar Nama, Subteks, dan Logo
         const appName = settings.namaAplikasi || 'EdAdmin Pro';
+        const appSub = settings.subteksAplikasi || 'Kurikulum Merdeka SMK';
+        const footerText = settings.footerSidebar || 'EdAdmin Pro v2.0\nGoogle Sheets Database';
+
         document.getElementById('sidebar-app-name').innerText = appName;
+        document.getElementById('sidebar-app-sub').innerText = appSub;
+        document.getElementById('sidebar-footer-text').innerText = footerText;
         document.getElementById('page-browser-title').innerText = `${appName} - Administrasi Guru`;
 
         const customLogo = settings.logoAplikasi;
@@ -450,8 +460,11 @@
           document.getElementById('set-kepsek').value = settings.namaKepsek || '';
           document.getElementById('set-nipkepsek').value = settings.nipKepsek || '';
           document.getElementById('set-logosekolah').value = settings.logoSekolah || '';
-          document.getElementById('set-namaapp').value = settings.namaAplikasi || 'EdAdmin Pro';
+          document.getElementById('set-namaapp').value = appName;
+          document.getElementById('set-subteksapp').value = appSub;
           document.getElementById('set-logoapp').value = settings.logoAplikasi || '';
+          document.getElementById('set-footersidebar').value = footerText;
+          document.getElementById('set-password').value = settings.passwordSettings || 'admin123';
         }
       }
 
@@ -459,6 +472,18 @@
     }
 
     function switchTab(tabId) {
+      if (tabId === 'pengaturan' && !isSettingsUnlocked) {
+        const correctPassword = (appData.settings && appData.settings.passwordSettings) ? appData.settings.passwordSettings : 'admin123';
+        const inputPass = prompt("Masukkan Password Pengaturan:");
+        if (inputPass === null) return; // Batal
+        if (inputPass.trim() === correctPassword) {
+          isSettingsUnlocked = true;
+        } else {
+          alert("Password salah! Akses ditolak.");
+          return;
+        }
+      }
+
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
       document.getElementById('tab-' + tabId).classList.remove('hidden');
       document.querySelectorAll('.nav-link').forEach(el => {
@@ -876,9 +901,12 @@
         nipKepsek: document.getElementById('set-nipkepsek').value,
         logoSekolah: document.getElementById('set-logosekolah').value,
         namaAplikasi: document.getElementById('set-namaapp').value,
-        logoAplikasi: document.getElementById('set-logoapp').value
+        subteksAplikasi: document.getElementById('set-subteksapp').value,
+        logoAplikasi: document.getElementById('set-logoapp').value,
+        footerSidebar: document.getElementById('set-footersidebar').value,
+        passwordSettings: document.getElementById('set-password').value
       });
-      alert('Pengaturan disimpan!');
+      alert('Pengaturan berhasil disimpan!');
       loadAppData();
     }
   </script>
