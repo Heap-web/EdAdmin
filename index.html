@@ -189,22 +189,45 @@
           </div>
         </div>
 
-        <!-- TAB 4: REKAPAN & CETAK -->
+        <!-- TAB 4: REKAPAN & CETAK (Gaya Modern ala Referensi) -->
         <div id="tab-rekap" class="tab-content hidden space-y-6">
+          <!-- Kartu Statistik Ringkasan -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-5 rounded-2xl shadow-sm flex items-center justify-between">
+              <div><p class="text-xs opacity-80 uppercase font-semibold">Total Siswa</p><h3 id="recap-stat-total" class="text-2xl font-bold mt-1">0</h3></div>
+              <div class="bg-white/20 p-3 rounded-xl"><i class="fa-solid fa-users text-xl"></i></div>
+            </div>
+            <div class="bg-gradient-to-r from-emerald-500 to-teal-600 text-white p-5 rounded-2xl shadow-sm flex items-center justify-between">
+              <div><p class="text-xs opacity-80 uppercase font-semibold">Total Hadir</p><h3 id="recap-stat-hadir" class="text-2xl font-bold mt-1">0</h3></div>
+              <div class="bg-white/20 p-3 rounded-xl"><i class="fa-solid fa-user-check text-xl"></i></div>
+            </div>
+            <div class="bg-gradient-to-r from-amber-500 to-orange-600 text-white p-5 rounded-2xl shadow-sm flex items-center justify-between">
+              <div><p class="text-xs opacity-80 uppercase font-semibold">Sakit / Izin</p><h3 id="recap-stat-sakitizin" class="text-2xl font-bold mt-1">0</h3></div>
+              <div class="bg-white/20 p-3 rounded-xl"><i class="fa-solid fa-user-clock text-xl"></i></div>
+            </div>
+            <div class="bg-gradient-to-r from-rose-500 to-red-600 text-white p-5 rounded-2xl shadow-sm flex items-center justify-between">
+              <div><p class="text-xs opacity-80 uppercase font-semibold">Total Alpa</p><h3 id="recap-stat-alpa" class="text-2xl font-bold mt-1">0</h3></div>
+              <div class="bg-white/20 p-3 rounded-xl"><i class="fa-solid fa-user-xmark text-xl"></i></div>
+            </div>
+          </div>
+
+          <!-- Konten Tabel Rekap -->
           <div class="bg-white p-6 rounded-2xl shadow-sm border space-y-4">
             <div class="flex flex-col md:flex-row justify-between items-center gap-4">
               <div>
                 <h3 class="font-bold text-blue-950 text-lg">Rekapitulasi Kehadiran Siswa</h3>
-                <p class="text-sm text-slate-500">Akumulasi total kehadiran, izin, sakit, alpa, keterlambatan, dan total ketidakhadiran.</p>
+                <p class="text-sm text-slate-500">Pilih periode bulan atau keseluruhan serta filter kelas.</p>
               </div>
               <div class="flex flex-wrap items-center gap-2">
-                <!-- Filter Bulan -->
-                <input type="month" id="recap-filter-bulan" onchange="loadRecapData()" class="border p-2 rounded-lg text-sm bg-slate-50" title="Pilih Bulan" />
+                <!-- Filter Periode (Bulan atau Keseluruhan) -->
+                <select id="recap-filter-bulan" onchange="loadRecapData()" class="border p-2 rounded-lg text-sm bg-slate-50 font-medium">
+                  <option value="all">Keseluruhan (Semua Periode)</option>
+                </select>
                 <input type="text" id="recap-search" oninput="renderRecapTable()" placeholder="Cari nama / NISN..." class="border p-2 rounded-lg text-sm" />
                 <select id="recap-filter-kelas" onchange="renderRecapTable()" class="border p-2 rounded-lg text-sm bg-slate-50">
                   <option value="">Semua Kelas</option>
                 </select>
-                <button onclick="printRecap()" class="bg-blue-950 hover:bg-blue-900 text-white px-4 py-2 rounded-lg text-sm font-medium"><i class="fa-solid fa-print mr-2"></i>Cetak Rekap</button>
+                <button onclick="printRecap()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2"><i class="fa-solid fa-file-arrow-down"></i><span>Unduh Laporan</span></button>
               </div>
             </div>
 
@@ -212,15 +235,21 @@
               <table class="w-full text-left text-sm border-collapse">
                 <thead>
                   <tr class="bg-slate-100 text-slate-700 border-b">
-                    <th class="p-3">NISN</th><th class="p-3">Nama Siswa</th><th class="p-3">Kelas</th>
-                    <th class="p-3 text-center">Hadir</th><th class="p-3 text-center">Izin</th>
-                    <th class="p-3 text-center">Sakit</th><th class="p-3 text-center">Alpa</th>
+                    <th class="p-3">#</th>
+                    <th class="p-3">Foto</th>
+                    <th class="p-3">Nama Siswa</th>
+                    <th class="p-3">NISN</th>
+                    <th class="p-3">Kelas</th>
+                    <th class="p-3 text-center">Hadir</th>
+                    <th class="p-3 text-center">Izin</th>
+                    <th class="p-3 text-center">Sakit</th>
+                    <th class="p-3 text-center">Alpa</th>
                     <th class="p-3 text-center font-bold text-red-600">Total Tidak Hadir</th>
                     <th class="p-3 text-center">Terlambat</th>
                   </tr>
                 </thead>
                 <tbody id="recap-table-body" class="divide-y divide-slate-100">
-                  <tr><td colspan="9" class="text-center py-4 text-slate-400">Memuat rekap...</td></tr>
+                  <tr><td colspan="11" class="text-center py-4 text-slate-400">Memuat rekap...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -270,22 +299,33 @@
   </div>
 
   <script>
-    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbz7bZKFQOFnCNsKjQPtCbFpN-cBrxHylG08si8VV9lCP-4Clo8glb4EVChuP5uo8YZ_/exec";
+    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwixYcwjsADvdO8_lPU6zZMUrwugf0pMPpnyqwOyqGRPoaEFsxzZ2AVP9KNimH5JvkrJQ/exec";
 
     let appData = { students: [], settings: {} };
     let recapDataCache = [];
     let html5QrCode = null;
 
     window.addEventListener('DOMContentLoaded', () => {
-      // Set default bulan input ke bulan saat ini (yyyy-MM)
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const monthInput = document.getElementById('recap-filter-bulan');
-      if(monthInput) monthInput.value = `${year}-${month}`;
-
+      populateMonthDropdown();
       loadAppData();
     });
+
+    function populateMonthDropdown() {
+      const select = document.getElementById('recap-filter-bulan');
+      // Buat list bulan otomatis dari tahun ini dan tahun sebelumnya
+      const now = new Date();
+      let html = '<option value="all">Keseluruhan (Semua Periode)</option>';
+      
+      for(let i = 0; i < 12; i++) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const monthName = d.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+        html += `<option value="${y}-${m}">${monthName}</option>`;
+      }
+      select.innerHTML = html;
+      select.value = "all"; // Default keseluruhan
+    }
 
     function playBeepSound() {
       try {
@@ -564,13 +604,31 @@
         return matchKeyword && matchClass;
       });
 
+      // Hitung ringkasan kartu atas
+      let totalHadirSum = 0;
+      let totalSakitIzinSum = 0;
+      let totalAlpaSum = 0;
+      recapDataCache.forEach(s => {
+        totalHadirSum += s.hadir;
+        totalSakitIzinSum += (s.sakit + s.izin);
+        totalAlpaSum += s.alpa;
+      });
+      document.getElementById('recap-stat-total').innerText = recapDataCache.length;
+      document.getElementById('recap-stat-hadir').innerText = totalHadirSum;
+      document.getElementById('recap-stat-sakitizin').innerText = totalSakitIzinSum;
+      document.getElementById('recap-stat-alpa').innerText = totalAlpaSum;
+
       if (filtered.length > 0) {
-        tbody.innerHTML = filtered.map(s => {
+        tbody.innerHTML = filtered.map((s, idx) => {
+          const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(s.nama)}&background=0D8ABC&color=fff`;
+          const foto = s.fotoUrl && s.fotoUrl.trim() !== '' ? s.fotoUrl : defaultAvatar;
           const totalTidakHadir = s.sakit + s.izin + s.alpa;
           return `
             <tr class="hover:bg-slate-50">
-              <td class="p-3 font-medium">${s.nisn}</td>
+              <td class="p-3 text-slate-500 font-medium">${idx + 1}.</td>
+              <td class="p-3"><img src="${foto}" alt="" class="w-8 h-8 rounded-full object-cover border bg-slate-100" /></td>
               <td class="p-3 font-semibold text-blue-950">${s.nama}</td>
+              <td class="p-3 font-medium text-slate-600">${s.nisn}</td>
               <td class="p-3 text-slate-600">${s.kelas}</td>
               <td class="p-3 text-center font-bold text-emerald-700">${s.hadir}</td>
               <td class="p-3 text-center font-bold text-purple-700">${s.izin}</td>
@@ -582,7 +640,7 @@
           `;
         }).join('');
       } else {
-        tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-slate-400">Tidak ada data rekap yang cocok</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="11" class="text-center py-4 text-slate-400">Tidak ada data rekap yang cocok</td></tr>`;
       }
     }
 
@@ -598,9 +656,8 @@
         return matchKeyword && matchClass;
       });
 
-      // Format Judul Bulan
-      let bulanStr = "SEMUA PERIODE";
-      if (bulanVal) {
+      let bulanStr = "KESELURUHAN (SEMUA PERIODE)";
+      if (bulanVal !== "all") {
         const [y, m] = bulanVal.split('-');
         const dateObj = new Date(y, m - 1, 1);
         bulanStr = dateObj.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }).toUpperCase();
@@ -626,7 +683,7 @@
           <p>${settings.alamatSekolah || ''}</p>
           <hr style="margin: 15px 0;">
           <h3 style="text-align:center; margin-bottom: 5px;">REKAPITULASI KEHADIRAN SISWA</h3>
-          <p style="font-size: 13px; font-weight: bold; color: #555;">PERIODE: ${bulanStr} ${selectedClass ? '| KELAS: ' + selectedClass.toUpperCase() : ''}</p>
+          <p style="font-size: 13px; font-weight: bold; color: #555; text-align: center;">PERIODE: ${bulanStr} ${selectedClass ? '| KELAS: ' + selectedClass.toUpperCase() : ''}</p>
           <table>
             <thead>
               <tr>
@@ -699,84 +756,4 @@
             lastScannedNisn = text;
             lastScanTime = currentTime;
 
-            feedback.classList.remove('hidden', 'bg-red-50', 'text-red-800');
-            feedback.classList.add('bg-emerald-50', 'text-emerald-800');
-            feedback.innerText = `Memproses NISN: ${text}...`;
-            
-            try {
-              const formData = new URLSearchParams();
-              formData.append('data', JSON.stringify({ action: 'scanQRCodeAttendance', payload: { nisn: text } }));
-              const response = await fetch(WEBAPP_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: formData.toString()
-              });
-              const resJson = await response.json();
-              
-              if (resJson.status === 'success' && resJson.data) {
-                const res = resJson.data;
-                playBeepSound(); 
-                feedback.innerText = `Berhasil! ${res.studentName} tercatat ${res.statusAbsen.toUpperCase()}.`;
-                
-                const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(res.studentName)}&background=0D8ABC&color=fff`;
-                scanFoto.src = res.fotoUrl && res.fotoUrl.trim() !== '' ? res.fotoUrl : defaultAvatar;
-                scanNama.innerText = res.studentName;
-                scanInfo.innerText = `Kelas: ${res.kelas} • NISN: ${text}`;
-                scanTime.innerText = `Waktu Scan: ${new Date().toLocaleTimeString('id-ID')}`;
-
-                if (res.statusAbsen === 'Terlambat') {
-                  scanBadge.className = "bg-amber-100 text-amber-800 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider";
-                  scanBadge.innerText = "TERLAMBAT";
-                } else if (res.statusAbsen === 'Pulang') {
-                  scanBadge.className = "bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider";
-                  scanBadge.innerText = "PULANG";
-                } else {
-                  scanBadge.className = "bg-emerald-100 text-emerald-800 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider";
-                  scanBadge.innerText = "HADIR TEPAT WAKTU";
-                }
-
-                placeholder.classList.add('hidden');
-                scanCard.classList.remove('hidden');
-
-                loadTodayAttendance(); 
-                loadUncheckedStudents();
-                loadAppData();
-              } else {
-                throw new Error(resJson.message);
-              }
-            } catch (err) {
-              feedback.classList.remove('bg-emerald-50', 'text-emerald-800');
-              feedback.classList.add('bg-red-50', 'text-red-800');
-              feedback.innerText = `Gagal menyimpan: ${err.message}`;
-            }
-          },
-          (err) => {}
-        );
-      } catch (err) {
-        feedback.classList.remove('hidden', 'bg-emerald-50', 'text-emerald-800');
-        feedback.classList.add('bg-red-50', 'text-red-800', 'border');
-        feedback.innerText = `Gagal membuka kamera: ${err}`;
-        html5QrCode = null;
-      }
-    }
-
-    function stopQrScanner() {
-      if (html5QrCode) { html5QrCode.stop().then(() => { html5QrCode = null; }).catch(e => {}); }
-    }
-
-    async function handleSaveSettings(e) {
-      e.preventDefault();
-      await callGAS('saveSettings', {
-        namaSekolah: document.getElementById('set-sekolah').value,
-        alamatSekolah: document.getElementById('set-alamat').value,
-        namaGuru: document.getElementById('set-guru').value,
-        nipGuru: document.getElementById('set-nipguru').value,
-        namaKepsek: document.getElementById('set-kepsek').value,
-        nipKepsek: document.getElementById('set-nipkepsek').value
-      });
-      alert('Pengaturan disimpan!');
-      loadAppData();
-    }
-  </script>
-</body>
-</html>
+            feedback.classList.remove('hidden', 'bg-red-50',
