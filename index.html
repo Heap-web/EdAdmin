@@ -70,7 +70,6 @@
             </div>
           </div>
 
-          <!-- Grid Tabel Dashboard -->
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div class="bg-white p-6 rounded-2xl shadow-sm border">
               <h3 class="font-bold text-blue-950 text-base mb-4"><i class="fa-solid fa-bolt text-amber-500 mr-2"></i>10 Siswa Paling Awal Absen</h3>
@@ -146,7 +145,6 @@
             </div>
           </div>
 
-          <!-- Tabel Hadir Hari Ini -->
           <div class="bg-white p-6 rounded-2xl shadow-sm border">
             <div class="flex justify-between items-center mb-4">
               <h3 class="font-bold text-blue-950 text-lg"><i class="fa-solid fa-user-check mr-2 text-emerald-600"></i>Siswa Hadir Hari Ini</h3>
@@ -166,7 +164,6 @@
             </div>
           </div>
 
-          <!-- Tabel Belum Absen & Input Manual Sakit/Izin/Alpa -->
           <div class="bg-white p-6 rounded-2xl shadow-sm border mt-6">
             <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-2">
               <h3 class="font-bold text-blue-950 text-lg"><i class="fa-solid fa-user-xmark mr-2 text-amber-600"></i>Siswa Belum Absen Hari Ini</h3>
@@ -198,9 +195,11 @@
             <div class="flex flex-col md:flex-row justify-between items-center gap-4">
               <div>
                 <h3 class="font-bold text-blue-950 text-lg">Rekapitulasi Kehadiran Siswa</h3>
-                <p class="text-sm text-slate-500">Akumulasi total kehadiran, izin, sakit, alpa, dan keterlambatan.</p>
+                <p class="text-sm text-slate-500">Akumulasi total kehadiran, izin, sakit, alpa, keterlambatan, dan total ketidakhadiran.</p>
               </div>
               <div class="flex flex-wrap items-center gap-2">
+                <!-- Filter Bulan -->
+                <input type="month" id="recap-filter-bulan" onchange="loadRecapData()" class="border p-2 rounded-lg text-sm bg-slate-50" title="Pilih Bulan" />
                 <input type="text" id="recap-search" oninput="renderRecapTable()" placeholder="Cari nama / NISN..." class="border p-2 rounded-lg text-sm" />
                 <select id="recap-filter-kelas" onchange="renderRecapTable()" class="border p-2 rounded-lg text-sm bg-slate-50">
                   <option value="">Semua Kelas</option>
@@ -213,18 +212,15 @@
               <table class="w-full text-left text-sm border-collapse">
                 <thead>
                   <tr class="bg-slate-100 text-slate-700 border-b">
-                    <th class="p-3">NISN</th>
-                    <th class="p-3">Nama Siswa</th>
-                    <th class="p-3">Kelas</th>
-                    <th class="p-3 text-center">Hadir</th>
-                    <th class="p-3 text-center">Izin</th>
-                    <th class="p-3 text-center">Sakit</th>
-                    <th class="p-3 text-center">Alpa</th>
+                    <th class="p-3">NISN</th><th class="p-3">Nama Siswa</th><th class="p-3">Kelas</th>
+                    <th class="p-3 text-center">Hadir</th><th class="p-3 text-center">Izin</th>
+                    <th class="p-3 text-center">Sakit</th><th class="p-3 text-center">Alpa</th>
+                    <th class="p-3 text-center font-bold text-red-600">Total Tidak Hadir</th>
                     <th class="p-3 text-center">Terlambat</th>
                   </tr>
                 </thead>
                 <tbody id="recap-table-body" class="divide-y divide-slate-100">
-                  <tr><td colspan="8" class="text-center py-4 text-slate-400">Memuat rekap...</td></tr>
+                  <tr><td colspan="9" class="text-center py-4 text-slate-400">Memuat rekap...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -240,11 +236,11 @@
               <div><label class="block text-xs font-semibold text-slate-600 mb-1">Alamat Sekolah</label><input type="text" id="set-alamat" class="w-full p-2.5 border rounded-lg text-sm" required /></div>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div><label class="block text-xs font-semibold text-slate-600 mb-1">Nama Guru</label><input type="text" id="set-guru" class="w-full p-2.5 border rounded-lg text-sm" required /></div>
-                <div><label class="block text-xs font-semibold text-slate-600 mb-1">NIP Guru</label><input type="text" id="set-nipguru" class="w-full p-2.5 border rounded-lg text-sm" required /></div>
+                <div><label class="block text-xs font-semibold text-slate-600 mb-1">NUPTK Guru</label><input type="text" id="set-nipguru" class="w-full p-2.5 border rounded-lg text-sm" required /></div>
               </div>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div><label class="block text-xs font-semibold text-slate-600 mb-1">Nama Kepala Sekolah</label><input type="text" id="set-kepsek" class="w-full p-2.5 border rounded-lg text-sm" required /></div>
-                <div><label class="block text-xs font-semibold text-slate-600 mb-1">NIP Kepala Sekolah</label><input type="text" id="set-nipkepsek" class="w-full p-2.5 border rounded-lg text-sm" required /></div>
+                <div><label class="block text-xs font-semibold text-slate-600 mb-1">NUPTK Kepala Sekolah</label><input type="text" id="set-nipkepsek" class="w-full p-2.5 border rounded-lg text-sm" required /></div>
               </div>
               <button type="submit" class="bg-blue-950 text-white font-medium px-4 py-2 rounded-lg text-sm">Simpan Pengaturan</button>
             </form>
@@ -274,13 +270,20 @@
   </div>
 
   <script>
-    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyD9WKcZSQIZWZOwPYHlP_CHj9hyszHpK2jiUhv15sSXgDaz8TzIqwBmzcvrzZ_VDLkfg/exec";
+    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbz7bZKFQOFnCNsKjQPtCbFpN-cBrxHylG08si8VV9lCP-4Clo8glb4EVChuP5uo8YZ_/exec";
 
     let appData = { students: [], settings: {} };
     let recapDataCache = [];
     let html5QrCode = null;
 
     window.addEventListener('DOMContentLoaded', () => {
+      // Set default bulan input ke bulan saat ini (yyyy-MM)
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const monthInput = document.getElementById('recap-filter-bulan');
+      if(monthInput) monthInput.value = `${year}-${month}`;
+
       loadAppData();
     });
 
@@ -333,7 +336,6 @@
         document.getElementById('stat-total-siswa').innerText = stats.totalSiswa;
         document.getElementById('stat-sudah-absen').innerText = `${stats.hadirHariIni}/${stats.totalSiswa}`;
         
-        // Render 10 Awal Absen
         const tbodyAwal = document.getElementById('dash-awal-body');
         if (stats.listAwalAbsen && stats.listAwalAbsen.length > 0) {
           tbodyAwal.innerHTML = stats.listAwalAbsen.map(item => `
@@ -343,7 +345,6 @@
           tbodyAwal.innerHTML = `<tr><td colspan="3" class="text-center py-3 text-slate-400">Belum ada data</td></tr>`;
         }
 
-        // Render 10 Terlambat
         const tbodyTerlambat = document.getElementById('dash-terlambat-body');
         if (stats.listTerlambat && stats.listTerlambat.length > 0) {
           tbodyTerlambat.innerHTML = stats.listTerlambat.map(item => `
@@ -534,7 +535,8 @@
     }
 
     async function loadRecapData() {
-      const data = await callGAS('getRecapData');
+      const bulanVal = document.getElementById('recap-filter-bulan').value;
+      const data = await callGAS('getRecapData', { bulan: bulanVal });
       if (data) {
         recapDataCache = data;
         populateRecapClassFilter(data);
@@ -563,26 +565,31 @@
       });
 
       if (filtered.length > 0) {
-        tbody.innerHTML = filtered.map(s => `
-          <tr class="hover:bg-slate-50">
-            <td class="p-3 font-medium">${s.nisn}</td>
-            <td class="p-3 font-semibold text-blue-950">${s.nama}</td>
-            <td class="p-3 text-slate-600">${s.kelas}</td>
-            <td class="p-3 text-center font-bold text-emerald-700">${s.hadir}</td>
-            <td class="p-3 text-center font-bold text-purple-700">${s.izin}</td>
-            <td class="p-3 text-center font-bold text-blue-700">${s.sakit}</td>
-            <td class="p-3 text-center font-bold text-red-700">${s.alpa}</td>
-            <td class="p-3 text-center font-bold text-amber-700">${s.terlambat}</td>
-          </tr>
-        `).join('');
+        tbody.innerHTML = filtered.map(s => {
+          const totalTidakHadir = s.sakit + s.izin + s.alpa;
+          return `
+            <tr class="hover:bg-slate-50">
+              <td class="p-3 font-medium">${s.nisn}</td>
+              <td class="p-3 font-semibold text-blue-950">${s.nama}</td>
+              <td class="p-3 text-slate-600">${s.kelas}</td>
+              <td class="p-3 text-center font-bold text-emerald-700">${s.hadir}</td>
+              <td class="p-3 text-center font-bold text-purple-700">${s.izin}</td>
+              <td class="p-3 text-center font-bold text-blue-700">${s.sakit}</td>
+              <td class="p-3 text-center font-bold text-red-700">${s.alpa}</td>
+              <td class="p-3 text-center font-bold text-red-600 bg-red-50">${totalTidakHadir}</td>
+              <td class="p-3 text-center font-bold text-amber-700">${s.terlambat}</td>
+            </tr>
+          `;
+        }).join('');
       } else {
-        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-slate-400">Tidak ada data rekap yang cocok</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-slate-400">Tidak ada data rekap yang cocok</td></tr>`;
       }
     }
 
     function printRecap() {
       const selectedClass = document.getElementById('recap-filter-kelas').value;
       const keyword = document.getElementById('recap-search').value.toLowerCase();
+      const bulanVal = document.getElementById('recap-filter-bulan').value;
       const settings = appData.settings || {};
 
       let filtered = recapDataCache.filter(s => {
@@ -590,6 +597,14 @@
         const matchClass = selectedClass ? s.kelas === selectedClass : true;
         return matchKeyword && matchClass;
       });
+
+      // Format Judul Bulan
+      let bulanStr = "SEMUA PERIODE";
+      if (bulanVal) {
+        const [y, m] = bulanVal.split('-');
+        const dateObj = new Date(y, m - 1, 1);
+        bulanStr = dateObj.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }).toUpperCase();
+      }
 
       let printWindow = window.open('', '_blank');
       let html = `
@@ -610,18 +625,20 @@
           <h2>${settings.namaSekolah || 'SEKOLAH MENENGAH KEJURUAN'}</h2>
           <p>${settings.alamatSekolah || ''}</p>
           <hr style="margin: 15px 0;">
-          <h3 style="text-align:center;">REKAPITULASI KEHADIRAN SISWA ${selectedClass ? 'KELAS: ' + selectedClass.toUpperCase() : ''}</h3>
+          <h3 style="text-align:center; margin-bottom: 5px;">REKAPITULASI KEHADIRAN SISWA</h3>
+          <p style="font-size: 13px; font-weight: bold; color: #555;">PERIODE: ${bulanStr} ${selectedClass ? '| KELAS: ' + selectedClass.toUpperCase() : ''}</p>
           <table>
             <thead>
               <tr>
                 <th>No</th><th>NISN</th><th>Nama Siswa</th><th>Kelas</th>
-                <th>Hadir</th><th>Izin</th><th>Sakit</th><th>Alpa</th><th>Terlambat</th>
+                <th>Hadir</th><th>Izin</th><th>Sakit</th><th>Alpa</th><th>Total Tidak Hadir</th><th>Terlambat</th>
               </tr>
             </thead>
             <tbody>
       `;
 
       filtered.forEach((s, idx) => {
+        const totalTdkHadir = s.sakit + s.izin + s.alpa;
         html += `
           <tr>
             <td class="text-center">${idx + 1}</td>
@@ -632,6 +649,7 @@
             <td class="text-center">${s.izin}</td>
             <td class="text-center">${s.sakit}</td>
             <td class="text-center">${s.alpa}</td>
+            <td class="text-center" style="font-weight:bold; color:red;">${totalTdkHadir}</td>
             <td class="text-center">${s.terlambat}</td>
           </tr>
         `;
@@ -641,8 +659,8 @@
             </tbody>
           </table>
           <div class="footer">
-            <div>Mengetahui,<br>Kepala Sekolah<br><br><br><b>${settings.namaKepsek || '....................'}</b><br>NIP. ${settings.nipKepsek || '...'}</div>
-            <div style="text-align: right;">Cimahi, ${new Date().toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'})}<br>Guru Mata Pelajaran / Piket<br><br><br><b>${settings.namaGuru || '....................'}</b><br>NIP. ${settings.nipGuru || '...'}</div>
+            <div>Mengetahui,<br>Kepala Sekolah<br><br><br><b>${settings.namaKepsek || '....................'}</b><br>NUPTK. ${settings.nipKepsek || '...'}</div>
+            <div style="text-align: right;">Cimahi, ${new Date().toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'})}<br>Guru Mata Pelajaran / Piket<br><br><br><b>${settings.namaGuru || '....................'}</b><br>NUPTK. ${settings.nipGuru || '...'}</div>
           </div>
           <script>window.print();<\/script>
         </body>
