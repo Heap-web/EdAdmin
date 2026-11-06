@@ -189,9 +189,8 @@
           </div>
         </div>
 
-        <!-- TAB 4: REKAPAN & CETAK (Gaya Modern ala Referensi) -->
+        <!-- TAB 4: REKAPAN & CETAK -->
         <div id="tab-rekap" class="tab-content hidden space-y-6">
-          <!-- Kartu Statistik Ringkasan -->
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-5 rounded-2xl shadow-sm flex items-center justify-between">
               <div><p class="text-xs opacity-80 uppercase font-semibold">Total Siswa</p><h3 id="recap-stat-total" class="text-2xl font-bold mt-1">0</h3></div>
@@ -211,7 +210,6 @@
             </div>
           </div>
 
-          <!-- Konten Tabel Rekap -->
           <div class="bg-white p-6 rounded-2xl shadow-sm border space-y-4">
             <div class="flex flex-col md:flex-row justify-between items-center gap-4">
               <div>
@@ -219,7 +217,6 @@
                 <p class="text-sm text-slate-500">Pilih periode bulan atau keseluruhan serta filter kelas.</p>
               </div>
               <div class="flex flex-wrap items-center gap-2">
-                <!-- Filter Periode (Bulan atau Keseluruhan) -->
                 <select id="recap-filter-bulan" onchange="loadRecapData()" class="border p-2 rounded-lg text-sm bg-slate-50 font-medium">
                   <option value="all">Keseluruhan (Semua Periode)</option>
                 </select>
@@ -312,7 +309,6 @@
 
     function populateMonthDropdown() {
       const select = document.getElementById('recap-filter-bulan');
-      // Buat list bulan otomatis dari tahun ini dan tahun sebelumnya
       const now = new Date();
       let html = '<option value="all">Keseluruhan (Semua Periode)</option>';
       
@@ -324,7 +320,7 @@
         html += `<option value="${y}-${m}">${monthName}</option>`;
       }
       select.innerHTML = html;
-      select.value = "all"; // Default keseluruhan
+      select.value = "all";
     }
 
     function playBeepSound() {
@@ -343,6 +339,7 @@
       if (show) el.classList.remove('hidden'); else el.classList.add('hidden');
     }
 
+    // Fungsi standar dengan loading (untuk menu utama/simpan)
     async function callGAS(action, payload = {}) {
       toggleLoading(true);
       try {
@@ -363,6 +360,28 @@
       } catch (err) {
         toggleLoading(false);
         alert('Error: ' + err.message);
+        return null;
+      }
+    }
+
+    // Fungsi khusus TANPA loading overlay (agar scan QR tidak ada pop-up "Memproses...")
+    async function callGASBackground(action, payload = {}) {
+      try {
+        const formData = new URLSearchParams();
+        formData.append('data', JSON.stringify({ action, payload }));
+        const response = await fetch(WEBAPP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: formData.toString()
+        });
+        const resJson = await response.json();
+        if (resJson.status === 'success') {
+          return resJson.data;
+        } else {
+          throw new Error(resJson.message);
+        }
+      } catch (err) {
+        console.error("Background error: " + err.message);
         return null;
       }
     }
@@ -485,7 +504,7 @@
 
     async function loadTodayAttendance() {
       try {
-        const resData = await callGAS('getTodayAttendance');
+        const resData = await callGASBackground('getTodayAttendance');
         const tbody = document.getElementById('today-attendance-body');
         if (resData && resData.length > 0) {
           tbody.innerHTML = resData.map(item => {
@@ -518,7 +537,7 @@
     let uncheckedStudentsCache = [];
 
     async function loadUncheckedStudents() {
-      const data = await callGAS('getUncheckedStudents');
+      const data = await callGASBackground('getUncheckedStudents');
       if (data) {
         uncheckedStudentsCache = data;
         populateClassFilter(uncheckedStudentsCache);
@@ -566,7 +585,7 @@
         loadUncheckedStudents();
         return;
       }
-      const res = await callGAS('saveManualAttendance', { nisn, status });
+      const res = await callGASBackground('saveManualAttendance', { nisn, status });
       if (res) {
         loadTodayAttendance();
         loadUncheckedStudents();
@@ -604,7 +623,6 @@
         return matchKeyword && matchClass;
       });
 
-      // Hitung ringkasan kartu atas
       let totalHadirSum = 0;
       let totalSakitIzinSum = 0;
       let totalAlpaSum = 0;
@@ -756,22 +774,16 @@
             lastScannedNisn = text;
             lastScanTime = currentTime;
 
+            // Umpan balik teks instan tanpa memunculkan kotak loading pop-up
             feedback.classList.remove('hidden', 'bg-red-50', 'text-red-800');
             feedback.classList.add('bg-emerald-50', 'text-emerald-800');
             feedback.innerText = `Memproses NISN: ${text}...`;
             
             try {
-              const formData = new URLSearchParams();
-              formData.append('data', JSON.stringify({ action: 'scanQRCodeAttendance', payload: { nisn: text } }));
-              const response = await fetch(WEBAPP_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: formData.toString()
-              });
-              const resJson = await response.json();
+              // Menggunakan fungsi latar belakang (silent request)
+              const res = await callGASBackground('scanQRCodeAttendance', { nisn: text });
               
-              if (resJson.status === 'success' && resJson.data) {
-                const res = resJson.data;
+              if (res) {
                 playBeepSound(); 
                 feedback.innerText = `Berhasil! ${res.studentName} tercatat ${res.statusAbsen.toUpperCase()}.`;
                 
@@ -797,9 +809,8 @@
 
                 loadTodayAttendance(); 
                 loadUncheckedStudents();
-                loadAppData();
               } else {
-                throw new Error(resJson.message);
+                throw new Error("Gagal merekam absensi.");
               }
             } catch (err) {
               feedback.classList.remove('bg-emerald-50', 'text-emerald-800');
