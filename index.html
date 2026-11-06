@@ -12,9 +12,9 @@
   <script src="https://unpkg.com/html5-qrcode"></script>
   <style>
     @keyframes livePulse {
-      0% { transform: scale(0.95); boxShadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-      70% { transform: scale(1); boxShadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-      100% { transform: scale(0.95); boxShadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
     }
     .live-indicator {
       display: inline-block;
@@ -351,7 +351,7 @@
   </div>
 
   <script>
-    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwntxagC8r6ekrD4zh32piXvjrU3EHpaTGd55HW7kecc9hZjzTB9yCjWXlbr2j86Z550Q/exec";
+    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyw_zqKoRbA0jE_cZKSIRB8mJuI6wAEwgEhVrlxUnQWG7j_VgiQacuPZmVy1H2K5bOI9Q/exec";
 
     let appData = { students: [], settings: {} };
     let recapDataCache = [];
@@ -449,7 +449,6 @@
         document.getElementById('stat-total-siswa').innerText = stats.totalSiswa;
         document.getElementById('stat-sudah-absen').innerText = `${stats.hadirHariIni}/${stats.totalSiswa}`;
         
-        // Render Rangking Kehadiran Kelas
         const rankingBody = document.getElementById('dash-ranking-body');
         if (stats.classRanking && stats.classRanking.length > 0) {
           rankingBody.innerHTML = stats.classRanking.map((item, idx) => {
@@ -559,6 +558,10 @@
         }
       });
       
+      if (tabId === 'dashboard') {
+        loadAppData();
+      }
+
       if (tabId === 'absensi') {
         setTimeout(() => { initQrScanner(); loadUncheckedStudents(); }, 300);
       } else {
@@ -916,7 +919,6 @@
                 scanInfo.innerText = `Kelas: ${res.kelas} • NISN: ${text}`;
                 scanTime.innerText = `Waktu Scan: ${new Date().toLocaleTimeString('id-ID')}`;
 
-                // Kata-kata motivasi dinamis yang disempurnakan
                 let motText = "🌟 Selamat pagi! Awali hari dengan semangat belajar yang tinggi, raih cita-citamu setinggi langit!";
                 if (res.statusAbsen === 'Terlambat') {
                   scanBadge.className = "bg-amber-100 text-amber-800 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider";
@@ -937,6 +939,14 @@
 
                 loadTodayAttendance(); 
                 loadUncheckedStudents();
+                
+                // Update otomatis data dashboard di background setiap selesai scan
+                callGASBackground('getDashboardStats').then(stats => {
+                  if (stats) {
+                    document.getElementById('stat-total-siswa').innerText = stats.totalSiswa;
+                    document.getElementById('stat-sudah-absen').innerText = `${stats.hadirHariIni}/${stats.totalSiswa}`;
+                  }
+                });
               } else {
                 throw new Error("Gagal merekam absensi.");
               }
