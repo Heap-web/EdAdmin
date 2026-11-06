@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EdAdmin Pro - Administrasi Guru</title>
+  <title id="page-browser-title">EdAdmin Pro - Administrasi Guru</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -24,9 +24,12 @@
     <!-- Sidebar -->
     <aside class="w-64 bg-blue-950 text-white flex flex-col hidden md:flex shadow-xl z-20">
       <div class="p-5 border-b border-blue-900 flex items-center space-x-3">
-        <div class="bg-blue-600 p-2 rounded-lg text-white font-bold"><i class="fa-solid fa-graduation-cap"></i></div>
+        <div id="sidebar-logo-container" class="bg-blue-600 p-2 rounded-lg text-white font-bold flex items-center justify-center w-10 h-10 overflow-hidden">
+          <i class="fa-solid fa-graduation-cap" id="sidebar-default-icon"></i>
+          <img id="sidebar-custom-logo" src="" class="w-full h-full object-cover hidden" alt="Logo" />
+        </div>
         <div>
-          <h1 class="font-bold text-lg leading-tight">EdAdmin Pro</h1>
+          <h1 id="sidebar-app-name" class="font-bold text-lg leading-tight">EdAdmin Pro</h1>
           <span class="text-xs text-blue-300">Kurikulum Merdeka SMK</span>
         </div>
       </div>
@@ -256,10 +259,15 @@
         <!-- TAB 5: PENGATURAN -->
         <div id="tab-pengaturan" class="tab-content hidden space-y-6">
           <div class="bg-white p-6 rounded-2xl shadow-sm border max-w-2xl">
-            <h3 class="font-bold text-blue-950 text-lg mb-4">Pengaturan Kop Surat & Identitas</h3>
+            <h3 class="font-bold text-blue-950 text-lg mb-4">Pengaturan Kop Surat & Identitas Aplikasi</h3>
             <form onsubmit="handleSaveSettings(event)" class="space-y-4">
               <div><label class="block text-xs font-semibold text-slate-600 mb-1">Nama Sekolah</label><input type="text" id="set-sekolah" class="w-full p-2.5 border rounded-lg text-sm" required /></div>
               <div><label class="block text-xs font-semibold text-slate-600 mb-1">Alamat Sekolah</label><input type="text" id="set-alamat" class="w-full p-2.5 border rounded-lg text-sm" required /></div>
+              <div><label class="block text-xs font-semibold text-slate-600 mb-1">Link Logo Sekolah (Google Drive / Gambar) untuk Cetak Laporan</label><input type="text" id="set-logosekolah" placeholder="https://drive.google.com/file/d/..." class="w-full p-2.5 border rounded-lg text-sm" /></div>
+              <hr class="my-2">
+              <div><label class="block text-xs font-semibold text-slate-600 mb-1">Nama Aplikasi (Sidebar)</label><input type="text" id="set-namaapp" class="w-full p-2.5 border rounded-lg text-sm" required /></div>
+              <div><label class="block text-xs font-semibold text-slate-600 mb-1">Link Logo Aplikasi (Sidebar)</label><input type="text" id="set-logoapp" placeholder="https://drive.google.com/file/d/..." class="w-full p-2.5 border rounded-lg text-sm" /></div>
+              <hr class="my-2">
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div><label class="block text-xs font-semibold text-slate-600 mb-1">Nama Guru</label><input type="text" id="set-guru" class="w-full p-2.5 border rounded-lg text-sm" required /></div>
                 <div><label class="block text-xs font-semibold text-slate-600 mb-1">NUPTK Guru</label><input type="text" id="set-nipguru" class="w-full p-2.5 border rounded-lg text-sm" required /></div>
@@ -296,7 +304,7 @@
   </div>
 
   <script>
-    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxmCGIE41WLA6hIrjSWtz3uPbgC-yxMi4TgyiHsKrP0eIrBnBjuJ2t3C-htOIrHGzoYVQ/exec";
+    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbypSt4U5I0e2V39bCqyGmY9Zmv8Yc-VeQzSCg8N4PdJ5HRC7d1NC4FgWyXUJxoOwlmNDw/exec";
 
     let appData = { students: [], settings: {} };
     let recapDataCache = [];
@@ -339,7 +347,6 @@
       if (show) el.classList.remove('hidden'); else el.classList.add('hidden');
     }
 
-    // Fungsi standar dengan loading (untuk menu utama/simpan)
     async function callGAS(action, payload = {}) {
       toggleLoading(true);
       try {
@@ -364,7 +371,6 @@
       }
     }
 
-    // Fungsi khusus TANPA loading overlay (agar scan QR tidak ada pop-up "Memproses...")
     async function callGASBackground(action, payload = {}) {
       try {
         const formData = new URLSearchParams();
@@ -417,6 +423,25 @@
       if (students) appData.students = students;
       if (settings) {
         appData.settings = settings;
+        
+        // Update Sidebar Nama & Logo Aplikasi
+        const appName = settings.namaAplikasi || 'EdAdmin Pro';
+        document.getElementById('sidebar-app-name').innerText = appName;
+        document.getElementById('page-browser-title').innerText = `${appName} - Administrasi Guru`;
+
+        const customLogo = settings.logoAplikasi;
+        const logoIcon = document.getElementById('sidebar-default-icon');
+        const logoImg = document.getElementById('sidebar-custom-logo');
+        if (customLogo && customLogo.trim() !== '') {
+          logoImg.src = customLogo;
+          logoImg.classList.remove('hidden');
+          logoIcon.classList.add('hidden');
+        } else {
+          logoImg.classList.add('hidden');
+          logoIcon.classList.remove('hidden');
+        }
+
+        // Update Form Pengaturan
         if(document.getElementById('set-sekolah')) {
           document.getElementById('set-sekolah').value = settings.namaSekolah || '';
           document.getElementById('set-alamat').value = settings.alamatSekolah || '';
@@ -424,6 +449,9 @@
           document.getElementById('set-nipguru').value = settings.nipGuru || '';
           document.getElementById('set-kepsek').value = settings.namaKepsek || '';
           document.getElementById('set-nipkepsek').value = settings.nipKepsek || '';
+          document.getElementById('set-logosekolah').value = settings.logoSekolah || '';
+          document.getElementById('set-namaapp').value = settings.namaAplikasi || 'EdAdmin Pro';
+          document.getElementById('set-logoapp').value = settings.logoAplikasi || '';
         }
       }
 
@@ -688,8 +716,11 @@
           <title>Cetak Rekap Kehadiran</title>
           <style>
             body { font-family: sans-serif; padding: 20px; color: #333; }
-            h2, p { text-align: center; margin: 2px 0; }
-            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            .header-container { display: flex; align-items: center; justify-content: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 15px; position: relative; }
+            .logo-sekolah { position: absolute; left: 10px; max-height: 70px; width: auto; }
+            .school-info { text-align: center; width: 100%; }
+            h2, p { margin: 2px 0; }
+            table { width: 100%; border-collapse: collapse; margin-top: 15px; }
             th, td { border: 1px solid #999; padding: 8px; text-align: left; font-size: 12px; }
             th { background: #f0f0f0; text-align: center; }
             .text-center { text-align: center; }
@@ -697,11 +728,15 @@
           </style>
         </head>
         <body>
-          <h2>${settings.namaSekolah || 'SEKOLAH MENENGAH KEJURUAN'}</h2>
-          <p>${settings.alamatSekolah || ''}</p>
-          <hr style="margin: 15px 0;">
+          <div class="header-container">
+            ${settings.logoSekolah ? `<img src="${settings.logoSekolah}" class="logo-sekolah" alt="Logo">` : ''}
+            <div class="school-info">
+              <h2>${settings.namaSekolah || 'SEKOLAH MENENGAH KEJURUAN'}</h2>
+              <p style="font-size: 12px;">${settings.alamatSekolah || ''}</p>
+            </div>
+          </div>
           <h3 style="text-align:center; margin-bottom: 5px;">REKAPITULASI KEHADIRAN SISWA</h3>
-          <p style="font-size: 13px; font-weight: bold; color: #555; text-align: center;">PERIODE: ${bulanStr} ${selectedClass ? '| KELAS: ' + selectedClass.toUpperCase() : ''}</p>
+          <p style="font-size: 12px; font-weight: bold; color: #555; text-align: center;">PERIODE: ${bulanStr} ${selectedClass ? '| KELAS: ' + selectedClass.toUpperCase() : ''}</p>
           <table>
             <thead>
               <tr>
@@ -774,13 +809,11 @@
             lastScannedNisn = text;
             lastScanTime = currentTime;
 
-            // Umpan balik teks instan tanpa memunculkan kotak loading pop-up
             feedback.classList.remove('hidden', 'bg-red-50', 'text-red-800');
             feedback.classList.add('bg-emerald-50', 'text-emerald-800');
             feedback.innerText = `Memproses NISN: ${text}...`;
             
             try {
-              // Menggunakan fungsi latar belakang (silent request)
               const res = await callGASBackground('scanQRCodeAttendance', { nisn: text });
               
               if (res) {
@@ -840,7 +873,10 @@
         namaGuru: document.getElementById('set-guru').value,
         nipGuru: document.getElementById('set-nipguru').value,
         namaKepsek: document.getElementById('set-kepsek').value,
-        nipKepsek: document.getElementById('set-nipkepsek').value
+        nipKepsek: document.getElementById('set-nipkepsek').value,
+        logoSekolah: document.getElementById('set-logosekolah').value,
+        namaAplikasi: document.getElementById('set-namaapp').value,
+        logoAplikasi: document.getElementById('set-logoapp').value
       });
       alert('Pengaturan disimpan!');
       loadAppData();
