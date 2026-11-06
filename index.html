@@ -10,6 +10,21 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://unpkg.com/html5-qrcode"></script>
+  <style>
+    @keyframes livePulse {
+      0% { transform: scale(0.95); boxShadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      70% { transform: scale(1); boxShadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+      100% { transform: scale(0.95); boxShadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+    .live-indicator {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      background-color: #10b981;
+      border-radius: 50%;
+      animation: livePulse 1.5s infinite;
+    }
+  </style>
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-800 font-sans antialiased">
   <!-- Loading Overlay -->
@@ -51,7 +66,13 @@
     <!-- Main Content Area -->
     <div class="flex-1 flex flex-col overflow-hidden">
       <header class="bg-white shadow-sm h-16 flex items-center justify-between px-6 z-10">
-        <h2 id="page-title" class="text-xl font-bold text-blue-950">Dashboard Statistik</h2>
+        <div class="flex items-center space-x-3">
+          <h2 id="page-title" class="text-xl font-bold text-blue-950">Dashboard Statistik</h2>
+          <span class="inline-flex items-center space-x-1.5 bg-emerald-50 text-emerald-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-emerald-200">
+            <span class="live-indicator"></span>
+            <span>Live Report</span>
+          </span>
+        </div>
         <div class="flex items-center space-x-4">
           <button onclick="loadAppData()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center space-x-2">
             <i class="fa-solid fa-rotate"></i><span>Sinkronisasi</span>
@@ -70,6 +91,26 @@
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center space-x-4">
               <div class="w-12 h-12 bg-emerald-100 text-emerald-900 rounded-xl flex items-center justify-center text-xl font-bold"><i class="fa-solid fa-user-check"></i></div>
               <div><p class="text-xs text-slate-500 font-medium uppercase">Sudah Absen Hari Ini</p><h3 id="stat-sudah-absen" class="text-2xl font-bold text-emerald-950">0/0</h3></div>
+            </div>
+          </div>
+
+          <!-- Rangking Kehadiran Kelas -->
+          <div class="bg-white p-6 rounded-2xl shadow-sm border">
+            <h3 class="font-bold text-blue-950 text-base mb-4"><i class="fa-solid fa-ranking-star text-indigo-600 mr-2"></i>Rangking Kehadiran Kelas Hari Ini</h3>
+            <div class="overflow-y-auto max-h-[220px] border rounded-xl">
+              <table class="w-full text-left text-sm">
+                <thead>
+                  <tr class="bg-slate-100 border-b">
+                    <th class="p-2.5 text-center w-16">Peringkat</th>
+                    <th class="p-2.5">Kelas</th>
+                    <th class="p-2.5 text-center">Hadir / Total Siswa</th>
+                    <th class="p-2.5 text-center">Persentase Kehadiran</th>
+                  </tr>
+                </thead>
+                <tbody id="dash-ranking-body" class="divide-y">
+                  <tr><td colspan="4" class="text-center py-3 text-slate-400">Belum ada data kehadiran</td></tr>
+                </tbody>
+              </table>
             </div>
           </div>
 
@@ -143,6 +184,8 @@
                   <h4 id="scan-nama" class="font-bold text-blue-950 text-xl mt-2">-</h4>
                   <p id="scan-info" class="text-sm text-slate-600 mt-0.5">-</p>
                   <p id="scan-time" class="text-xs font-mono text-slate-400 mt-1">-</p>
+                  <!-- Kata Motivasi Dinamis -->
+                  <div id="scan-motivation" class="mt-3 p-3 bg-blue-50 border border-blue-200 text-blue-900 text-xs rounded-xl italic font-medium"></div>
                 </div>
               </div>
             </div>
@@ -308,7 +351,7 @@
   </div>
 
   <script>
-    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwrS5ERbf5nrlvBBppvXMFd8ir3wdAFZNyYY75eXMFnn6UOdROkfuKsnPIo7GG2HPBLuQ/exec";
+    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwntxagC8r6ekrD4zh32piXvjrU3EHpaTGd55HW7kecc9hZjzTB9yCjWXlbr2j86Z550Q/exec";
 
     let appData = { students: [], settings: {} };
     let recapDataCache = [];
@@ -406,6 +449,29 @@
         document.getElementById('stat-total-siswa').innerText = stats.totalSiswa;
         document.getElementById('stat-sudah-absen').innerText = `${stats.hadirHariIni}/${stats.totalSiswa}`;
         
+        // Render Rangking Kehadiran Kelas
+        const rankingBody = document.getElementById('dash-ranking-body');
+        if (stats.classRanking && stats.classRanking.length > 0) {
+          rankingBody.innerHTML = stats.classRanking.map((item, idx) => {
+            const percent = item.total > 0 ? ((item.hadir / item.total) * 100).toFixed(1) : 0;
+            let badgeClass = "bg-slate-100 text-slate-700";
+            if (idx === 0) badgeClass = "bg-amber-100 text-amber-800 font-bold";
+            else if (idx === 1) badgeClass = "bg-slate-200 text-slate-800 font-bold";
+            else if (idx === 2) badgeClass = "bg-orange-100 text-orange-800 font-bold";
+
+            return `
+              <tr class="hover:bg-slate-50">
+                <td class="p-2.5 text-center"><span class="${badgeClass} px-2.5 py-1 rounded-full text-xs">#${idx + 1}</span></td>
+                <td class="p-2.5 font-semibold text-blue-950">${item.kelas}</td>
+                <td class="p-2.5 text-center">${item.hadir} dari ${item.total} Siswa</td>
+                <td class="p-2.5 text-center font-bold text-emerald-700">${percent}%</td>
+              </tr>
+            `;
+          }).join('');
+        } else {
+          rankingBody.innerHTML = `<tr><td colspan="4" class="text-center py-3 text-slate-400">Belum ada data kehadiran</td></tr>`;
+        }
+
         const tbodyAwal = document.getElementById('dash-awal-body');
         if (stats.listAwalAbsen && stats.listAwalAbsen.length > 0) {
           tbodyAwal.innerHTML = stats.listAwalAbsen.map(item => `
@@ -429,7 +495,6 @@
       if (settings) {
         appData.settings = settings;
         
-        // Update Sidebar Nama, Subteks, dan Logo
         const appName = settings.namaAplikasi || 'EdAdmin Pro';
         const appSub = settings.subteksAplikasi || 'Kurikulum Merdeka SMK';
         const footerText = settings.footerSidebar || 'EdAdmin Pro v2.0\nGoogle Sheets Database';
@@ -451,7 +516,6 @@
           logoIcon.classList.remove('hidden');
         }
 
-        // Update Form Pengaturan
         if(document.getElementById('set-sekolah')) {
           document.getElementById('set-sekolah').value = settings.namaSekolah || '';
           document.getElementById('set-alamat').value = settings.alamatSekolah || '';
@@ -475,7 +539,7 @@
       if (tabId === 'pengaturan' && !isSettingsUnlocked) {
         const correctPassword = (appData.settings && appData.settings.passwordSettings) ? appData.settings.passwordSettings : 'admin123';
         const inputPass = prompt("Masukkan Password Pengaturan:");
-        if (inputPass === null) return; // Batal
+        if (inputPass === null) return;
         if (inputPass.trim() === correctPassword) {
           isSettingsUnlocked = true;
         } else {
@@ -822,6 +886,7 @@
       const scanInfo = document.getElementById('scan-info');
       const scanTime = document.getElementById('scan-time');
       const scanBadge = document.getElementById('scan-status-badge');
+      const scanMotivation = document.getElementById('scan-motivation');
 
       try {
         html5QrCode = new Html5Qrcode("reader");
@@ -851,16 +916,21 @@
                 scanInfo.innerText = `Kelas: ${res.kelas} • NISN: ${text}`;
                 scanTime.innerText = `Waktu Scan: ${new Date().toLocaleTimeString('id-ID')}`;
 
+                // Kata-kata motivasi dinamis yang disempurnakan
+                let motText = "🌟 Selamat pagi! Awali hari dengan semangat belajar yang tinggi, raih cita-citamu setinggi langit!";
                 if (res.statusAbsen === 'Terlambat') {
                   scanBadge.className = "bg-amber-100 text-amber-800 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider";
                   scanBadge.innerText = "TERLAMBAT";
+                  motText = "⚠️ Tetap semangat ya! Jadikan keterlambatan hari ini sebagai pelajaran berharga untuk datang lebih awal esok hari.";
                 } else if (res.statusAbsen === 'Pulang') {
                   scanBadge.className = "bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider";
                   scanBadge.innerText = "PULANG";
+                  motText = "🏠 Hati-hati di jalan! Sampai jumpa kembali esok hari dengan semangat baru.";
                 } else {
                   scanBadge.className = "bg-emerald-100 text-emerald-800 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider";
                   scanBadge.innerText = "HADIR TEPAT WAKTU";
                 }
+                scanMotivation.innerText = motText;
 
                 placeholder.classList.add('hidden');
                 scanCard.classList.remove('hidden');
