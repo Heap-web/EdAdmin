@@ -164,6 +164,18 @@
 
         <!-- TAB 3: ABSENSI & QR SCANNER -->
         <div id="tab-absensi" class="tab-content hidden space-y-6">
+          <!-- Kotak Statistik Ringkasan (Dipindahkan ke sini juga) -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center space-x-4">
+              <div class="w-12 h-12 bg-blue-100 text-blue-900 rounded-xl flex items-center justify-center text-xl font-bold"><i class="fa-solid fa-users"></i></div>
+              <div><p class="text-xs text-slate-500 font-medium uppercase">Total Siswa Keseluruhan</p><h3 id="stat-total-siswa-scan" class="text-2xl font-bold text-blue-950">0</h3></div>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center space-x-4">
+              <div class="w-12 h-12 bg-emerald-100 text-emerald-900 rounded-xl flex items-center justify-center text-xl font-bold"><i class="fa-solid fa-user-check"></i></div>
+              <div><p class="text-xs text-slate-500 font-medium uppercase">Sudah Absen Hari Ini</p><h3 id="stat-sudah-absen-scan" class="text-2xl font-bold text-emerald-950">0/0</h3></div>
+            </div>
+          </div>
+
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div class="bg-white p-6 rounded-2xl shadow-sm border flex flex-col space-y-4">
               <h3 class="font-bold text-blue-950 text-lg"><i class="fa-solid fa-qrcode mr-2"></i>Live QR Scanner Absensi</h3>
@@ -446,8 +458,13 @@
       const settings = await callGAS('getSettings');
 
       if (stats) {
+        // Update Dashboard Stats
         document.getElementById('stat-total-siswa').innerText = stats.totalSiswa;
         document.getElementById('stat-sudah-absen').innerText = `${stats.hadirHariIni}/${stats.totalSiswa}`;
+        
+        // Update Absensi Tab Stats juga secara sinkron
+        document.getElementById('stat-total-siswa-scan').innerText = stats.totalSiswa;
+        document.getElementById('stat-sudah-absen-scan').innerText = `${stats.hadirHariIni}/${stats.totalSiswa}`;
         
         const rankingBody = document.getElementById('dash-ranking-body');
         if (stats.classRanking && stats.classRanking.length > 0) {
@@ -563,13 +580,23 @@
       }
 
       if (tabId === 'absensi') {
-        setTimeout(() => { initQrScanner(); loadUncheckedStudents(); }, 300);
+        setTimeout(() => { initQrScanner(); loadUncheckedStudents(); loadAppDataBackground(); }, 300);
       } else {
         stopQrScanner();
       }
 
       if (tabId === 'rekap') {
         loadRecapData();
+      }
+    }
+
+    async function loadAppDataBackground() {
+      const stats = await callGASBackground('getDashboardStats');
+      if (stats) {
+        document.getElementById('stat-total-siswa').innerText = stats.totalSiswa;
+        document.getElementById('stat-sudah-absen').innerText = `${stats.hadirHariIni}/${stats.totalSiswa}`;
+        document.getElementById('stat-total-siswa-scan').innerText = stats.totalSiswa;
+        document.getElementById('stat-sudah-absen-scan').innerText = `${stats.hadirHariIni}/${stats.totalSiswa}`;
       }
     }
 
@@ -709,7 +736,7 @@
       if (res) {
         loadTodayAttendance();
         loadUncheckedStudents();
-        loadAppData();
+        loadAppDataBackground();
       }
     }
 
@@ -880,6 +907,7 @@
       
       loadTodayAttendance();
       loadUncheckedStudents();
+      loadAppDataBackground();
 
       const feedback = document.getElementById('scan-feedback');
       const placeholder = document.getElementById('latest-scan-placeholder');
@@ -939,14 +967,7 @@
 
                 loadTodayAttendance(); 
                 loadUncheckedStudents();
-                
-                // Update otomatis data dashboard di background setiap selesai scan
-                callGASBackground('getDashboardStats').then(stats => {
-                  if (stats) {
-                    document.getElementById('stat-total-siswa').innerText = stats.totalSiswa;
-                    document.getElementById('stat-sudah-absen').innerText = `${stats.hadirHariIni}/${stats.totalSiswa}`;
-                  }
-                });
+                loadAppDataBackground();
               } else {
                 throw new Error("Gagal merekam absensi.");
               }
